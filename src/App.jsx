@@ -1519,7 +1519,7 @@ function TermsPrintModal({ order, paciente, unidade, onClose }) {
         </div>
 
         <div id="imv-print-area" className="flex flex-col gap-3">
-        <div className="imv-term-page rounded-xl p-6" style={{ background: "#fff", fontFamily: "Inter, sans-serif", color: "#111" }}>
+        <div className="imv-term-page rounded-xl p-6" style={{ background: "#fff", fontFamily: "Arial, Helvetica, sans-serif", color: "#111" }}>
           <TermoLogo />
           <h2 className="mt-3 text-center imv-t-16 font-extrabold">Termo de Recebimento</h2>
           <p className="mt-1 text-center imv-t-115 font-semibold text-gray-500">PROJETO SAÚDE AUDITIVA – INSTITUTO MAÇÔNICO OUVIR - IMOUVIR</p>
@@ -1561,7 +1561,7 @@ function TermsPrintModal({ order, paciente, unidade, onClose }) {
           </div>
         </div>
 
-        <div className="imv-page-2 imv-term-page rounded-xl p-6" style={{ background: "#fff", fontFamily: "Inter, sans-serif", color: "#111" }}>
+        <div className="imv-page-2 imv-term-page rounded-xl p-6" style={{ background: "#fff", fontFamily: "Arial, Helvetica, sans-serif", color: "#111" }}>
           <TermoLogo />
           <h2 className="mt-3 text-center imv-t-15 font-extrabold">TERMO DE RESPONSABILIDADE E AUTORIZAÇÃO<br />DE USO E DIREITOS DE IMAGEM INDIVIDUAL</h2>
           <p className="mt-1 imv-t-105 leading-tight" style={{ fontSize: 10 }}>
