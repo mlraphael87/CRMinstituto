@@ -1611,7 +1611,7 @@ function TermsPrintModal({ order, paciente, unidade, onClose }) {
       {createPortal(
         <div id="imv-print-portal">
           <style>{`
-            @page { size: A4; margin: 10mm; }
+            @page { size: 210mm 297mm; margin: 10mm; }
             #imv-print-portal { display: none; }
             @media print {
               #root { display: none !important; }
