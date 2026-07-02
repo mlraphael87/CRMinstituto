@@ -4,13 +4,18 @@ import {
   Phone, MessageCircle, Upload, FileText, Trash2, Pencil, Download, Printer,
   ChevronLeft, ChevronRight, Check, Clock, AlertTriangle, Stethoscope, Ear,
   ClipboardList, FileCheck2, Building2, ChevronDown, ArrowRight, BadgeCheck,
-  CalendarClock, Wallet, PackageCheck, PackageSearch, UserPlus, Save, Info,
-  MoreVertical, Gift, Truck, ShieldCheck, ArrowLeft, RefreshCw, Menu, Sparkles
+  CalendarClock, Wallet, PackageCheck, PackageSearch, UserPlus, Save,
+  MoreVertical, Gift, Truck, ShieldCheck, ArrowLeft, RefreshCw, Menu, Sparkles,
+  LogOut
 } from "lucide-react";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend
 } from "recharts";
+import { AuthProvider, useAuth } from "./auth/AuthProvider.jsx";
+import Login from "./auth/Login.jsx";
+import { isSupabaseConfigured } from "./lib/supabaseClient.js";
+import * as api from "./data/api.js";
 
 /* =========================================================================
    IMOUVIR · CRM — Design tokens
@@ -72,181 +77,6 @@ const FONTS = `
 @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap');
 `;
 
-/* =========================================================================
-   Dados de catálogo — extraídos da planilha real de pedidos SONIC
-   (fábrica: código único por item, conforme fornecido pelo Paulo)
-   ========================================================================= */
-const CATALOGO_INICIAL = [
-  {cat:'APARELHOS AASI',nome:'RADIANT100 MNR RECARREGÁVEL',codigo:'222291',preco:2800.0},
-  {cat:'APARELHOS AASI',nome:'RADIANT 100 MNR',codigo:'230652',preco:2700.0},
-  {cat:'APARELHOS AASI',nome:'RADIANT100 MNBTE',codigo:'234745',preco:2500.0},
-  {cat:'APARELHOS AASI',nome:'RADIANT100 CUSTOMIZADO',codigo:'',preco:2500.0},
-  {cat:'APARELHOS AASI',nome:'RADIANT 60 MNR RECARREGÁVEL',codigo:'222305',preco:1800.0},
-  {cat:'APARELHOS AASI',nome:'RADIANT 60 MNR',codigo:'230666',preco:1650.0},
-  {cat:'APARELHOS AASI',nome:'RADIANT 60 MNBTE',codigo:'234759',preco:1575.0},
-  {cat:'APARELHOS AASI',nome:'RADIANT 60 CUSTOMIZADO',codigo:'',preco:1575.0},
-  {cat:'APARELHOS AASI',nome:'RADIANT 20 MNR RECARREGÁVEL',codigo:'240470',preco:1100.0},
-  {cat:'APARELHOS AASI',nome:'RADIANT 20 MNR',codigo:'240749',preco:935.0},
-  {cat:'APARELHOS AASI',nome:'RADIANT 20 MNBTE',codigo:'234772',preco:880.0},
-  {cat:'APARELHOS AASI',nome:'RADIANT 20 CUSTOMIZADO',codigo:'',preco:880.0},
-  {cat:'APARELHOS AASI',nome:'TREK 40 Super Power',codigo:'248369',preco:1133.0},
-  {cat:'APARELHOS AASI',nome:'TREK 40 Ultra Power',codigo:'247787',preco:1133.0},
-  {cat:'APARELHOS AASI',nome:'CARREGADOR SONIC PLUS',codigo:'225683',preco:600.0},
-  {cat:'APARELHOS AASI',nome:'CARREGADOR SONIC MESA',codigo:'200309',preco:400.0},
-  {cat:'APARELHOS AASI',nome:'CAPTIVATE 100 MINIRITE Recarregável',codigo:'197014',preco:2200.0},
-  {cat:'APARELHOS AASI',nome:'CAPTIVATE 100 MINIRITE',codigo:'196447',preco:2178.0},
-  {cat:'APARELHOS AASI',nome:'CAPTIVATE 100 BTE 105',codigo:'196429',preco:1925.0},
-  {cat:'APARELHOS AASI',nome:'CAPTIVATE 80 MINIRITE Recarregável',codigo:'197020',preco:1600.0},
-  {cat:'APARELHOS AASI',nome:'CAPTIVATE 80 MINIRITE',codigo:'196454',preco:1628.0},
-  {cat:'APARELHOS AASI',nome:'CAPTIVATE 80 BTE 105',codigo:'196435',preco:1573.0},
-  {cat:'APARELHOS AASI',nome:'CAPTIVATE 60 MINIRITE Recarregável',codigo:'197026',preco:1400.0},
-  {cat:'APARELHOS AASI',nome:'CAPTIVATE 60 MINIRITE',codigo:'196460',preco:1265.0},
-  {cat:'APARELHOS AASI',nome:'CAPTIVATE 60 BTE 105',codigo:'196441',preco:1210.0},
-  {cat:'APARELHOS AASI',nome:'CAPTIVATE 40 MINIRITE Recarregável',codigo:'215144',preco:950.0},
-  {cat:'APARELHOS AASI',nome:'CAPTIVATE 40 MINIRITE',codigo:'215325',preco:935.0},
-  {cat:'APARELHOS AASI',nome:'CAPTIVATE 40 BTE 105',codigo:'215349',preco:880.0},
-  {cat:'APARELHOS AASI',nome:'CAPTIVATE 20 MINIRITE',codigo:'215331',preco:825.0},
-  {cat:'APARELHOS AASI',nome:'CAPTIVATE 20 BTE 105',codigo:'215355',preco:770.0},
-  {cat:'RECEPTORES',nome:'Recep. 60 miniFit 1L',codigo:'149272',preco:170.0},
-  {cat:'RECEPTORES',nome:'Recep. 60 miniFit 1R',codigo:'149271',preco:170.0},
-  {cat:'RECEPTORES',nome:'Recep. 60 miniFit 2L',codigo:'149274',preco:170.0},
-  {cat:'RECEPTORES',nome:'Recep. 60 miniFit 2R',codigo:'149273',preco:170.0},
-  {cat:'RECEPTORES',nome:'Recep. 60 miniFit 3L',codigo:'149276',preco:170.0},
-  {cat:'RECEPTORES',nome:'Recep. 60 miniFit 3R',codigo:'149275',preco:170.0},
-  {cat:'RECEPTORES',nome:'Recep. 60 miniFit 4L',codigo:'149278',preco:170.0},
-  {cat:'RECEPTORES',nome:'Recep. 60 miniFit 4R',codigo:'149277',preco:170.0},
-  {cat:'RECEPTORES',nome:'Recep. 85 miniFit 1L',codigo:'149279',preco:170.0},
-  {cat:'RECEPTORES',nome:'Recep. 85 miniFit 1R',codigo:'149280',preco:170.0},
-  {cat:'RECEPTORES',nome:'Recep. 85 miniFit 2L',codigo:'149281',preco:170.0},
-  {cat:'RECEPTORES',nome:'Recep. 85 miniFit 2R',codigo:'149282',preco:170.0},
-  {cat:'RECEPTORES',nome:'Recep. 85 miniFit 3L',codigo:'149283',preco:170.0},
-  {cat:'RECEPTORES',nome:'Recep. 85 miniFit 3R',codigo:'149284',preco:170.0},
-  {cat:'RECEPTORES',nome:'Recep. 85 miniFit 4L',codigo:'149285',preco:170.0},
-  {cat:'RECEPTORES',nome:'Recep. 85 miniFit 4R',codigo:'149286',preco:170.0},
-  {cat:'RECEPTORES',nome:'Recep. 100 miniFit 1L',codigo:'149287',preco:170.0},
-  {cat:'RECEPTORES',nome:'Recep. 100 miniFit 1R',codigo:'149288',preco:170.0},
-  {cat:'RECEPTORES',nome:'Recep. 100 miniFit 2L',codigo:'149289',preco:170.0},
-  {cat:'RECEPTORES',nome:'Recep. 100 miniFit 2R',codigo:'149290',preco:170.0},
-  {cat:'RECEPTORES',nome:'Recep. 100 miniFit 3L',codigo:'149291',preco:170.0},
-  {cat:'RECEPTORES',nome:'Recep. 100 miniFit 3R',codigo:'149292',preco:170.0},
-  {cat:'RECEPTORES',nome:'Recep. 100 miniFit 4L',codigo:'149293',preco:170.0},
-  {cat:'RECEPTORES',nome:'Recep. 100 miniFit 4R',codigo:'149294',preco:170.0},
-  {cat:'RECEPTORES',nome:'Tubo Fino miniFit 0.9 0L',codigo:'156522',preco:58.0},
-  {cat:'RECEPTORES',nome:'Tubo Fino miniFit 0.9 0R',codigo:'156526',preco:58.0},
-  {cat:'RECEPTORES',nome:'Tubo Fino miniFit 0.9 1L',codigo:'156523',preco:58.0},
-  {cat:'RECEPTORES',nome:'Tubo Fino miniFit 0.9 1R',codigo:'156527',preco:58.0},
-  {cat:'RECEPTORES',nome:'Tubo Fino miniFit 0.9 2L',codigo:'156524',preco:58.0},
-  {cat:'RECEPTORES',nome:'Tubo Fino miniFit 0.9 2R',codigo:'156528',preco:58.0},
-  {cat:'RECEPTORES',nome:'Tubo Fino miniFit 0.9 3L',codigo:'156525',preco:58.0},
-  {cat:'RECEPTORES',nome:'Tubo Fino miniFit 0.9 3R',codigo:'156529',preco:58.0},
-  {cat:'RECEPTORES',nome:'Tubo Fino miniFit 1.3 0L',codigo:'156533',preco:58.0},
-  {cat:'RECEPTORES',nome:'Tubo Fino miniFit 1.3 0R',codigo:'156537',preco:58.0},
-  {cat:'RECEPTORES',nome:'Tubo Fino miniFit 1.3 1L',codigo:'156534',preco:58.0},
-  {cat:'RECEPTORES',nome:'Tubo Fino miniFit 1.3 1R',codigo:'156538',preco:58.0},
-  {cat:'RECEPTORES',nome:'Tubo Fino miniFit 1.3 2L',codigo:'156535',preco:58.0},
-  {cat:'RECEPTORES',nome:'Tubo Fino miniFit 1.3 2R',codigo:'156539',preco:58.0},
-  {cat:'RECEPTORES',nome:'Tubo Fino miniFit 1.3 3L',codigo:'156536',preco:58.0},
-  {cat:'RECEPTORES',nome:'Tubo Fino miniFit 1.3 3R',codigo:'156540',preco:58.0},
-  {cat:'DOMO',nome:'Domo OpenBass 5mm (aberto) - receptor de 60dB',codigo:'218359',preco:50.0},
-  {cat:'DOMO',nome:'Domo OpenBass 6mm (aberto)',codigo:'218364',preco:50.0},
-  {cat:'DOMO',nome:'Domo OpenBass 8mm (aberto)',codigo:'218368',preco:50.0},
-  {cat:'DOMO',nome:'Domo OpenBass 10mm (aberto)',codigo:'218373',preco:50.0},
-  {cat:'DOMO',nome:'Domo OpenBass 12mm (aberto)',codigo:'218377',preco:50.0},
-  {cat:'DOMO',nome:'Domo Aberto 5 mm',codigo:'173494',preco:50.0},
-  {cat:'DOMO',nome:'Domo Aberto 6 mm',codigo:'149303',preco:50.0},
-  {cat:'DOMO',nome:'Domo Aberto 8 mm',codigo:'149304',preco:50.0},
-  {cat:'DOMO',nome:'Domo Aberto 10 mm',codigo:'149305',preco:50.0},
-  {cat:'DOMO',nome:'Domo Bass Double (duplo) 6mm',codigo:'149306',preco:50.0},
-  {cat:'DOMO',nome:'Domo Bass Double (duplo) 8mm',codigo:'149307',preco:50.0},
-  {cat:'DOMO',nome:'Domo Bass Double (duplo) 10mm',codigo:'149308',preco:50.0},
-  {cat:'DOMO',nome:'Domo Bass Double (duplo) 12mm',codigo:'149309',preco:50.0},
-  {cat:'DOMO',nome:'Domo Bass Single (único) 6mm',codigo:'149310',preco:50.0},
-  {cat:'DOMO',nome:'Domo Bass Single (único) 8mm',codigo:'149311',preco:50.0},
-  {cat:'DOMO',nome:'Domo Bass Single (único) 10mm',codigo:'149312',preco:50.0},
-  {cat:'DOMO',nome:'Domo Bass Single (único) 12mm',codigo:'149313',preco:50.0},
-  {cat:'DOMO',nome:'Domo Power 6mm',codigo:'149314',preco:50.0},
-  {cat:'DOMO',nome:'Domo Power 8mm',codigo:'149315',preco:50.0},
-  {cat:'DOMO',nome:'Domo Power 10mm',codigo:'149316',preco:50.0},
-  {cat:'DOMO',nome:'Domo Power 12mm',codigo:'149317',preco:50.0},
-  {cat:'DOMO',nome:'Adaptadores Domo Plus (Tulipa)',codigo:'5892510000',preco:50.0},
-  {cat:'PILHAS',nome:'Sonic 10',codigo:'686010',preco:9.0},
-  {cat:'PILHAS',nome:'Sonic 13',codigo:'686013',preco:9.0},
-  {cat:'PILHAS',nome:'Sonic 312',codigo:'686312',preco:9.0},
-  {cat:'PILHAS',nome:'Sonic 675',codigo:'686675',preco:9.0},
-  {cat:'PILHAS',nome:'Bateria Recarregável 312+ LI-ION SER',codigo:'240909',preco:120.0},
-  {cat:'FILTROS',nome:'Filtro do gancho ( Damper )',codigo:'6893021000',preco:28.75},
-  {cat:'FILTROS',nome:'O-Cap (ITC, ITE) - protetor microfone',codigo:'128003',preco:100.0},
-  {cat:'FILTROS',nome:'WAX PROTECTION SET PROWAX MINIFIT',codigo:'130091',preco:71.3},
-  {cat:'FILTROS',nome:'Prowax**',codigo:'123367',preco:57.5},
-  {cat:'FILTROS',nome:'T-Cap Bege (CIC) - protetor microfone',codigo:'123328',preco:90.85},
-  {cat:'FILTROS',nome:'T-Cap Preto (IIC) - protetor microfone',codigo:'123327',preco:86.25},
-  {cat:'FILTROS',nome:'Waxstop',codigo:'6893028000',preco:25.3},
-  {cat:'FERRAMENTAS',nome:'Régua para medir tubo fino',codigo:'8902125000',preco:9.92},
-  {cat:'FERRAMENTAS',nome:'Régua para medir receptor 0 a 5',codigo:'8902129000',preco:17.92},
-  {cat:'FERRAMENTAS',nome:'Ferramenta para medir impressão',codigo:'120313',preco:63.13},
-  {cat:'FERRAMENTAS',nome:'Ferramenta Lite Tip',codigo:'118890',preco:12.51},
-  {cat:'FERRAMENTAS',nome:'Ferramenta para remoção do receptor',codigo:'8906023000',preco:8.0},
-  {cat:'FERRAMENTAS',nome:'FERRAMENTA PARA ADAPTADOR (Trimmer)',codigo:'8250123000',preco:8.0},
-  {cat:'FERRAMENTAS',nome:'Ferramenta para remoção do pino (chave vermelha)',codigo:'8902227000',preco:6.0},
-  {cat:'FERRAMENTAS',nome:'Ferramenta para limpeza de ventilação',codigo:'8250109203',preco:4.15},
-  {cat:'FERRAMENTAS',nome:'Ferramenta para filtro de micro molde (empurrar)',codigo:'8250121000',preco:8.24},
-  {cat:'FERRAMENTAS',nome:'Ferramenta para micro molde (apertar)',codigo:'8250109800',preco:7.14},
-  {cat:'FERRAMENTAS',nome:'Ferramenta para limpeza de ventilação pequena',codigo:'121563',preco:12.25},
-  {cat:'FERRAMENTAS',nome:'Ferramenta para medir tamanho da ventilação',codigo:'8902177002',preco:10.29},
-  {cat:'FERRAMENTAS',nome:'Ferramenta para retirar Flex Power Mould',codigo:'143070',preco:12.52},
-  {cat:'ACESSÓRIOS FONOAUDIÓLOGOS',nome:'Caneta Earlite',codigo:'125718',preco:248.04},
-  {cat:'ACESSÓRIOS FONOAUDIÓLOGOS',nome:'Ponta para caneta Earlite',codigo:'8900115808',preco:59.07},
-  {cat:'ACESSÓRIOS FONOAUDIÓLOGOS',nome:'Lâmpada para caneta Earlite',codigo:'8900205102',preco:17.25},
-  {cat:'ACESSÓRIOS FONOAUDIÓLOGOS',nome:'Material p/ impressão A- Zoft (B+C) (azul e branca)',codigo:'7825015004',preco:782.56},
-  {cat:'ACESSÓRIOS FONOAUDIÓLOGOS',nome:'Material p/ impressão Dreve 544g (verde e branca)',codigo:'175547',preco:662.22},
-  {cat:'ACESSÓRIOS FONOAUDIÓLOGOS',nome:'Seringa para molde',codigo:'8900102709',preco:181.98},
-  {cat:'ACESSÓRIOS FONOAUDIÓLOGOS',nome:'Estetoclips',codigo:'8901020100',preco:32.2},
-  {cat:'ACESSÓRIOS FONOAUDIÓLOGOS',nome:'Tubo para Estetoclips',codigo:'8900105302',preco:38.0},
-  {cat:'ACESSÓRIOS FONOAUDIÓLOGOS',nome:'Adaptador para Estetoclips',codigo:'5730002008',preco:38.67},
-  {cat:'ACESSÓRIOS FONOAUDIÓLOGOS',nome:'Pino Estetoclips',codigo:'9002101709',preco:28.75},
-  {cat:'ACESSÓRIOS FONOAUDIÓLOGOS',nome:'Estetoclips completo',codigo:'5720101006',preco:177.1},
-  {cat:'ACESSÓRIOS FONOAUDIÓLOGOS',nome:'Tubinho de molde dobrado (2 mm)',codigo:'93301009',preco:3.45},
-  {cat:'ACESSÓRIOS FONOAUDIÓLOGOS',nome:'Pinça pequena',codigo:'8243301301',preco:219.55},
-  {cat:'GANCHOS',nome:'Cheer | Captivate (Adulto com filtro)',codigo:'137859',preco:11.5},
-  {cat:'GANCHOS',nome:'Captivate (Pediátrico com filtro)',codigo:'137861',preco:11.5},
-  {cat:'GANCHOS',nome:'Captivate (Adulto)',codigo:'135417',preco:11.5},
-  {cat:'GANCHOS',nome:'Captivate (Pediátrico)',codigo:'137826',preco:11.5},
-  {cat:'GANCHOS',nome:'Trek (Adulto com filtro)',codigo:'209647',preco:11.5},
-  {cat:'GANCHOS',nome:'Trek (Pediátrico com filtro)',codigo:'209648',preco:11.5},
-  {cat:'GANCHOS',nome:'Trek (Adulto)',codigo:'173685',preco:11.5},
-  {cat:'GANCHOS',nome:'Trek (Pediátrico)',codigo:'173686',preco:11.5},
-  {cat:'GANCHOS',nome:'Cheer Nano',codigo:'5710538000',preco:11.5},
-  {cat:'GANCHOS',nome:'Pep 20',codigo:'5710113000',preco:66.68},
-  {cat:'GANCHOS',nome:'Journey',codigo:'5710114000',preco:11.5},
-  {cat:'ACESSÓRIOS CONECTIVIDADE',nome:'SoundGate 3',codigo:'144605',preco:700.0},
-  {cat:'ACESSÓRIOS CONECTIVIDADE',nome:'Microfone Sonic',codigo:'145646',preco:550.0},
-  {cat:'ACESSÓRIOS CONECTIVIDADE',nome:'Controle Remoto Sonic',codigo:'139770',preco:350.0},
-  {cat:'ACESSÓRIOS CONECTIVIDADE',nome:'SoundClip A 2.4 G',codigo:'179320',preco:700.0},
-  {cat:'ACESSÓRIOS CONECTIVIDADE',nome:'Adaptador TV-A 2.4 G',codigo:'168633',preco:700.0},
-  {cat:'ACESSÓRIOS CONECTIVIDADE',nome:'Controle Remoto RC-A, 2.4G',codigo:'164369',preco:350.0},
-  {cat:'ACESSÓRIOS CONECTIVIDADE',nome:'NOAHLINK WL - CPD-1',codigo:'177547',preco:800.0},
-  {cat:'ACESSÓRIOS DE PROGRAMAÇÃO',nome:'Cabo para programação Nº 03 – OD (Vermelho)',codigo:'214372',preco:170.0},
-  {cat:'ACESSÓRIOS DE PROGRAMAÇÃO',nome:'Cabo para programação Nº 03 – OE (Azul)',codigo:'214463',preco:170.0},
-  {cat:'ACESSÓRIOS DE PROGRAMAÇÃO',nome:'FlexConnect (miniRITE)',codigo:'3900118005',preco:180.0},
-  {cat:'ACESSÓRIOS DE PROGRAMAÇÃO',nome:'Mini FlexConnect',codigo:'117468',preco:157.0},
-  {cat:'ACESSÓRIOS DE PROGRAMAÇÃO',nome:'Sapata branca para programação',codigo:'3995053008',preco:218.19},
-  {cat:'ACESSÓRIOS DE PROGRAMAÇÃO',nome:'Adaptador mini para programação (CIC)',codigo:'164237',preco:247.98},
-  {cat:'ACESSÓRIOS PARA USUÁRIOS',nome:'Bombinha de ar',codigo:'8900101909',preco:50.38},
-  {cat:'ACESSÓRIOS PARA USUÁRIOS',nome:'Bateria para aparelho recarregável',codigo:'205490',preco:119.59},
-  {cat:'ACESSÓRIOS PARA USUÁRIOS',nome:'Desumidificador Elétrico PerfectDry Lux',codigo:'003040848',preco:400.0},
-  {cat:'ACESSÓRIOS PARA USUÁRIOS',nome:'Desumidificador KidCat Sonic',codigo:'003040854',preco:457.63},
-  {cat:'ACESSÓRIOS PARA USUÁRIOS',nome:'Testador de pilhas',codigo:'8901015009',preco:18.5},
-  {cat:'ACESSÓRIOS PARA USUÁRIOS',nome:'MALETA SONIC KIT DE TUBOS FINOS MINIFIT',codigo:'156557',preco:600.0},
-  {cat:'ACESSÓRIOS PARA USUÁRIOS',nome:'MALETA SONIC KIT DE RECEPTORES',codigo:'152606',preco:650.0},
-  {cat:'ACESSÓRIOS PARA USUÁRIOS',nome:'Grip Tip com Ventilação Pequeno L',codigo:'153923',preco:63.25},
-  {cat:'ACESSÓRIOS PARA USUÁRIOS',nome:'Grip Tip com Ventilação Pequeno R',codigo:'153921',preco:63.25},
-  {cat:'ACESSÓRIOS PARA USUÁRIOS',nome:'Grip Tip com Ventilação Grande L',codigo:'153919',preco:63.25},
-  {cat:'ACESSÓRIOS PARA USUÁRIOS',nome:'Grip Tip com Ventilação Grande R',codigo:'153917',preco:63.25},
-  {cat:'ACESSÓRIOS PARA USUÁRIOS',nome:'Grip Tip sem Ventilação Pequeno L',codigo:'153924',preco:63.25},
-  {cat:'ACESSÓRIOS PARA USUÁRIOS',nome:'Grip Tip sem Ventilação Pequeno R',codigo:'153922',preco:63.25},
-  {cat:'ACESSÓRIOS PARA USUÁRIOS',nome:'Grip Tip sem Ventilação Grande L',codigo:'153920',preco:63.25},
-  {cat:'ACESSÓRIOS PARA USUÁRIOS',nome:'Grip Tip sem Ventilação Grande R',codigo:'153918',preco:63.25},
-].map((d, i) => ({ id: "cat-" + i, ...d }));
 
 const CONDICOES_PAGAMENTO = [
   { codigo: "001", descricao: "DEPÓSITO EM CONTA" },
@@ -261,39 +91,10 @@ const CONDICOES_PAGAMENTO = [
 
 const FABRICANTES = ["ATOMED PRODUTOS MEDICOS E DE AUX. HUMANO LTDA.", "TELEX", "Outra distribuidora"];
 
-/* Unidades — cidades reais do site imouvir.com.br. Endereço completo fica em
-   branco até o Paulo cadastrar (evita inventar endereço que não existe). */
-const UNIDADES_INICIAIS = [
-  { id: "un-01", codigo: "01", cidade: "Cuiabá", uf: "MT", endereco: "", telefone: "65992364617", sede: true },
-  { id: "un-02", codigo: "02", cidade: "Cáceres", uf: "MT", endereco: "", telefone: "" },
-  { id: "un-03", codigo: "03", cidade: "Juína", uf: "MT", endereco: "", telefone: "" },
-  { id: "un-04", codigo: "04", cidade: "Capital (Rio de Janeiro)", uf: "RJ", endereco: "", telefone: "" },
-  { id: "un-05", codigo: "05", cidade: "Icaraí, Niterói", uf: "RJ", endereco: "", telefone: "" },
-  { id: "un-06", codigo: "06", cidade: "Navegantes", uf: "SC", endereco: "", telefone: "" },
-  { id: "un-07", codigo: "07", cidade: "Itapema", uf: "SC", endereco: "", telefone: "" },
-  { id: "un-08", codigo: "08", cidade: "Capital (São Paulo)", uf: "SP", endereco: "", telefone: "" },
-  { id: "un-09", codigo: "09", cidade: "Atibaia", uf: "SP", endereco: "", telefone: "" },
-  { id: "un-10", codigo: "10", cidade: "Santo André", uf: "SP", endereco: "", telefone: "" },
-  { id: "un-11", codigo: "11", cidade: "Ribeirão Preto", uf: "SP", endereco: "", telefone: "" },
-  { id: "un-12", codigo: "12", cidade: "São Bernardo do Campo", uf: "SP", endereco: "", telefone: "" },
-  { id: "un-14", codigo: "14", cidade: "Bauru", uf: "SP", endereco: "", telefone: "" },
-  { id: "un-15", codigo: "15", cidade: "Brasília", uf: "DF", endereco: "", telefone: "" },
-  { id: "un-16", codigo: "16", cidade: "Salvador", uf: "BA", endereco: "", telefone: "" },
-  { id: "un-17", codigo: "17", cidade: "Vitória", uf: "ES", endereco: "", telefone: "" },
-  {
-    id: "un-13", codigo: "13", cidade: "Uberlândia", uf: "MG",
-    endereco: "Associação dos Surdos e Mudos de Uberlândia - ASUL, Rua Matheus Vaz, nº 865, Bairro Luizote de Freitas II, Uberlândia/MG, CEP 38.414-308",
-    telefone: "",
-  },
-  { id: "un-18", codigo: "18", cidade: "Curitiba", uf: "PR", endereco: "", telefone: "" },
-];
 
 /* =========================================================================
    Helpers
    ========================================================================= */
-let __uid = 1000;
-const uid = (p = "id") => `${p}-${(__uid++).toString(36)}`;
-
 function onlyDigits(s = "") { return String(s).replace(/\D/g, ""); }
 
 function formatPhone(v = "") {
@@ -349,253 +150,8 @@ function cx(...a) { return a.filter(Boolean).join(" "); }
 const DIAS_SEMANA = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 const MESES = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
 
-/* =========================================================================
-   Seeds — pacientes / agendamentos / pedidos (dados de demonstração
-   coerentes com o fluxo real descrito pelo Paulo)
-   ========================================================================= */
 const today = new Date();
 
-const PACIENTES_INICIAIS = [
-  {
-    id: "pac-1001",
-    nome: "Claudineia Elizabeti da Silva Hübener",
-    telefone: "65999012233",
-    cpf: "",
-    dataNascimento: "1977-07-18",
-    cidade: "Juína", uf: "MT",
-    endereco: "",
-    status: "Adaptado",
-    fonoaudiologo: "Dra. Camila Rezende",
-    observacoes: "Adaptação bilateral concluída. Cliente satisfeita, sem queixas de retorno.",
-    documentos: [],
-    historico: [
-      { id: uid("h"), data: addDays(today, -70).toISOString(), texto: "Primeiro contato via WhatsApp — indicação de familiar." },
-      { id: uid("h"), data: addDays(today, -58).toISOString(), texto: "Avaliação auditiva realizada e teste com aparelho demo (Sonic CV40)." },
-      { id: uid("h"), data: addDays(today, -50).toISOString(), texto: "Decisão de compra confirmada. Pedido 663.03.26 aberto." },
-      { id: uid("h"), data: addDays(today, -30).toISOString(), texto: "Pedido faturado — NF 124.081 — 2x Sonic CV40 B 105." },
-      { id: uid("h"), data: addDays(today, -19).toISOString(), texto: "Entrega e adaptação realizadas. Termo de Recebimento assinado." },
-    ],
-  },
-  {
-    id: "pac-1002",
-    nome: "Romilda Alves Faria",
-    telefone: "34999887766",
-    cpf: "",
-    dataNascimento: "1958-02-11",
-    cidade: "Uberlândia", uf: "MG",
-    endereco: "",
-    status: "Pedido em Andamento",
-    fonoaudiologo: "Dr. Henrique Salles",
-    observacoes: "Atendimento via parceria com a ASUL (Associação dos Surdos e Mudos de Uberlândia).",
-    documentos: [],
-    historico: [
-      { id: uid("h"), data: addDays(today, -20).toISOString(), texto: "Avaliação auditiva anexada — perda moderada bilateral." },
-      { id: uid("h"), data: addDays(today, -12).toISOString(), texto: "Teste com aparelho demo realizado, decisão de compra confirmada." },
-      { id: uid("h"), data: addDays(today, -4).toISOString(), texto: "Pedido OC 647.13.26 enviado para faturamento — 2x Radiant 20 MNR Recarregável." },
-    ],
-  },
-  {
-    id: "pac-1003",
-    nome: "José Ailton Ferreira Gomes",
-    telefone: "65981234567",
-    cpf: "",
-    dataNascimento: "1965-09-03",
-    cidade: "Cuiabá", uf: "MT",
-    endereco: "",
-    status: "Teste Agendado",
-    fonoaudiologo: "Dra. Camila Rezende",
-    observacoes: "Queixa principal: dificuldade em ambientes ruidosos e reuniões de trabalho.",
-    documentos: [],
-    historico: [
-      { id: uid("h"), data: addDays(today, -3).toISOString(), texto: "Contato via WhatsApp — agendada avaliação auditiva." },
-    ],
-  },
-  {
-    id: "pac-1004",
-    nome: "Marlene Aparecida Souza",
-    telefone: "65999456123",
-    cpf: "",
-    dataNascimento: "1949-12-24",
-    cidade: "Cáceres", uf: "MT",
-    endereco: "",
-    status: "Aguardando Decisão",
-    fonoaudiologo: "Dra. Camila Rezende",
-    observacoes: "Realizou teste com aparelho demo, aguardando retorno da família sobre orçamento.",
-    documentos: [],
-    historico: [
-      { id: uid("h"), data: addDays(today, -6).toISOString(), texto: "Audiometria anexada ao processo (enviada pelo paciente via WhatsApp)." },
-      { id: uid("h"), data: addDays(today, -1).toISOString(), texto: "Teste com aparelho demo realizado — aguardando decisão." },
-    ],
-  },
-  {
-    id: "pac-1005",
-    nome: "Antônio Carlos Pereira",
-    telefone: "65991230099",
-    cpf: "",
-    dataNascimento: "1952-04-30",
-    cidade: "Cuiabá", uf: "MT",
-    endereco: "",
-    status: "Novo Contato",
-    fonoaudiologo: "",
-    observacoes: "Chegou por indicação, ainda sem avaliação agendada.",
-    documentos: [],
-    historico: [
-      { id: uid("h"), data: addDays(today, -1).toISOString(), texto: "Novo contato recebido via WhatsApp." },
-    ],
-  },
-  {
-    id: "pac-1006",
-    nome: "Vera Lúcia Nogueira Dias",
-    telefone: "65992001188",
-    cpf: "",
-    dataNascimento: "1960-06-15",
-    cidade: "Cuiabá", uf: "MT",
-    endereco: "",
-    status: "Aguardando Retorno",
-    fonoaudiologo: "Dra. Camila Rezende",
-    observacoes: "Aparelho enviado pela fábrica, aguardando chegada para agendar entrega.",
-    documentos: [],
-    historico: [
-      { id: uid("h"), data: addDays(today, -25).toISOString(), texto: "Pedido faturado, aguardando envio da fábrica." },
-    ],
-  },
-];
-
-function seedAppointments(patients) {
-  const find = (name) => patients.find((p) => p.nome === name);
-  return [
-    {
-      id: uid("ag"),
-      pacienteId: find("José Ailton Ferreira Gomes").id,
-      tipo: "Avaliação e Teste",
-      data: formatDateInputValue(addDays(today, 1)),
-      hora: "09:30",
-      unidadeId: "un-01",
-      profissional: "Dra. Camila Rezende",
-      status: "Agendado",
-      confirmadoEm: null,
-    },
-    {
-      id: uid("ag"),
-      pacienteId: find("Vera Lúcia Nogueira Dias").id,
-      tipo: "Entrega e Adaptação",
-      data: formatDateInputValue(addDays(today, 1)),
-      hora: "14:00",
-      unidadeId: "un-01",
-      profissional: "Dra. Camila Rezende",
-      status: "Agendado",
-      confirmadoEm: null,
-    },
-    {
-      id: uid("ag"),
-      pacienteId: find("Marlene Aparecida Souza").id,
-      tipo: "Retorno de Acompanhamento",
-      data: formatDateInputValue(addDays(today, 2)),
-      hora: "10:00",
-      unidadeId: "un-02",
-      profissional: "Dra. Camila Rezende",
-      status: "Agendado",
-      confirmadoEm: null,
-    },
-    {
-      id: uid("ag"),
-      pacienteId: find("Antônio Carlos Pereira").id,
-      tipo: "Avaliação e Teste",
-      data: formatDateInputValue(addDays(today, 4)),
-      hora: "11:00",
-      unidadeId: "un-01",
-      profissional: "Dra. Camila Rezende",
-      status: "Agendado",
-      confirmadoEm: null,
-    },
-    {
-      id: uid("ag"),
-      pacienteId: find("Claudineia Elizabeti da Silva Hübener").id,
-      tipo: "Retorno de Acompanhamento",
-      data: formatDateInputValue(addDays(today, -2)),
-      hora: "09:00",
-      unidadeId: "un-03",
-      profissional: "Dra. Camila Rezende",
-      status: "Realizado",
-      confirmadoEm: addDays(today, -3).toISOString(),
-    },
-    {
-      id: uid("ag"),
-      pacienteId: find("Romilda Alves Faria").id,
-      tipo: "Avaliação e Teste",
-      data: formatDateInputValue(addDays(today, -10)),
-      hora: "15:30",
-      unidadeId: "un-13",
-      profissional: "Dr. Henrique Salles",
-      status: "Realizado",
-      confirmadoEm: addDays(today, -11).toISOString(),
-    },
-  ];
-}
-
-function seedOrders(patients) {
-  const find = (name) => patients.find((p) => p.nome === name);
-  return [
-    {
-      id: uid("ped"),
-      numero: "663.03.26",
-      idFabrica: "903071",
-      pacienteId: find("Claudineia Elizabeti da Silva Hübener").id,
-      unidadeId: "un-03",
-      enderecoEntregaCustom: "",
-      condicaoPagamento: "009",
-      fonoaudiologo: "Dra. Camila Rezende",
-      itens: [{ catalogoId: "cat-2", nome: "RADIANT100 MNBTE", codigo: "234745", quantidade: 2, precoUnitario: 2500 }],
-      bonificacao: [{ catalogoId: "cat-93", nome: "Bateria Recarregável 312+ LI-ION SER", codigo: "240909", quantidade: 2, precoUnitario: 120 }],
-      status: "Entregue e Documentado",
-      nf: { numero: "124.081", data: "2026-06-22", fabricante: FABRICANTES[0] },
-      series: [
-        { catalogoId: "cat-2", numeroSerie: "96476026" },
-        { catalogoId: "cat-2", numeroSerie: "96476184" },
-      ],
-      criadoEm: addDays(today, -50).toISOString(),
-    },
-    {
-      id: uid("ped"),
-      numero: "647.13.26",
-      idFabrica: "903075",
-      pacienteId: find("Romilda Alves Faria").id,
-      unidadeId: "un-13",
-      enderecoEntregaCustom: "",
-      condicaoPagamento: "009",
-      fonoaudiologo: "Dr. Henrique Salles",
-      itens: [{ catalogoId: "cat-8", nome: "RADIANT 20 MNR RECARREGÁVEL", codigo: "240470", quantidade: 2, precoUnitario: 1100 }],
-      bonificacao: [
-        { catalogoId: "cat-155", nome: "Desumidificador KidCat Sonic", codigo: "003040854", quantidade: 1, precoUnitario: 18 },
-        { catalogoId: "cat-42", nome: "Recep. 85 miniFit 3L", codigo: "149283", quantidade: 1, precoUnitario: 170 },
-        { catalogoId: "cat-43", nome: "Recep. 85 miniFit 3R", codigo: "149284", quantidade: 1, precoUnitario: 170 },
-        { catalogoId: "cat-89", nome: "Domo Power 8mm", codigo: "149315", quantidade: 1, precoUnitario: 50 },
-        { catalogoId: "cat-90", nome: "Domo Power 10mm", codigo: "149316", quantidade: 1, precoUnitario: 50 },
-        { catalogoId: "cat-99", nome: "WAX PROTECTION SET PROWAX MINIFIT", codigo: "130091", quantidade: 2, precoUnitario: 71.3 },
-      ],
-      status: "Aguardando Faturamento",
-      nf: null,
-      series: [],
-      criadoEm: addDays(today, -4).toISOString(),
-    },
-    {
-      id: uid("ped"),
-      numero: "664.01.26",
-      idFabrica: "903080",
-      pacienteId: find("Vera Lúcia Nogueira Dias").id,
-      unidadeId: "un-01",
-      enderecoEntregaCustom: "",
-      condicaoPagamento: "011",
-      fonoaudiologo: "Dra. Camila Rezende",
-      itens: [{ catalogoId: "cat-4", nome: "RADIANT 60 MNR RECARREGÁVEL", codigo: "222305", quantidade: 2, precoUnitario: 1800 }],
-      bonificacao: [],
-      status: "Enviado",
-      nf: { numero: "124.205", data: formatDateInputValue(addDays(today, -8)), fabricante: FABRICANTES[0] },
-      series: [],
-      criadoEm: addDays(today, -25).toISOString(),
-    },
-  ];
-}
 
 /* =========================================================================
    Contexto global
@@ -794,8 +350,10 @@ const NAV = [
   { id: "unidades", label: "Unidades", icon: MapPin },
 ];
 
-function Sidebar({ page, setPage, mobileOpen, setMobileOpen }) {
+function Sidebar({ page, setPage, mobileOpen, setMobileOpen, profile, user, signOut }) {
   const { patients, appointments, orders } = useCRM();
+  const nomeUsuario = profile?.nome || user?.email || "Usuário";
+  const cargoUsuario = profile?.cargo || "Equipe IMOUVIR";
   const pendentesAmanha = appointments.filter((a) => isSameDay(a.data, addDays(today, 1)) && a.status !== "Cancelado" && a.status !== "Realizado" && !a.confirmadoEm).length;
   const pedidosAguardando = orders.filter((o) => o.status === "Aguardando Faturamento").length;
 
@@ -844,15 +402,14 @@ function Sidebar({ page, setPage, mobileOpen, setMobileOpen }) {
 
         <div className="rounded-xl px-3.5 py-3.5" style={{ background: "rgba(255,255,255,0.08)" }}>
           <div className="flex items-center gap-2.5">
-            <Avatar nome="Paulo Leite" size={34} />
-            <div className="leading-tight">
-              <div className="imv-t-13 font-bold text-white">Paulo Leite</div>
-              <div className="imv-t-11" style={{ color: "rgba(255,255,255,0.55)" }}>Gestor do projeto</div>
+            <Avatar nome={nomeUsuario} size={34} />
+            <div className="min-w-0 flex-1 leading-tight">
+              <div className="truncate imv-t-13 font-bold text-white">{nomeUsuario}</div>
+              <div className="imv-t-11" style={{ color: "rgba(255,255,255,0.55)" }}>{cargoUsuario}</div>
             </div>
-          </div>
-          <div className="mt-3 flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 imv-t-105 leading-snug" style={{ background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.55)" }}>
-            <Info size={12} className="shrink-0 imv-mt-1px" />
-            Protótipo — dados em memória para validação do fluxo.
+            <button title="Sair" onClick={signOut} className="rounded-md p-1.5" style={{ color: "rgba(255,255,255,0.55)" }}>
+              <LogOut size={15} />
+            </button>
           </div>
         </div>
       </aside>
@@ -1057,7 +614,7 @@ function KpiCard({ icon: Icon, label, value, tone, onClick, small }) {
    Pacientes
    ========================================================================= */
 function PacientesPage() {
-  const { patients, setPatients, units } = useCRM();
+  const { patients } = useCRM();
   const [query, setQuery] = useState("");
   const [statusFiltro, setStatusFiltro] = useState("Todos");
   const [selectedId, setSelectedId] = useState(null);
@@ -1122,23 +679,22 @@ function PacientesPage() {
 }
 
 function NewPatientModal({ onClose }) {
-  const { patients, setPatients } = useCRM();
+  const { createPatientFn } = useCRM();
   const [form, setForm] = useState({ nome: "", telefone: "", dataNascimento: "", cidade: "", uf: "", endereco: "", fonoaudiologo: "", observacoes: "" });
+  const [saving, setSaving] = useState(false);
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
 
-  const salvar = () => {
+  const salvar = async () => {
     if (!form.nome.trim() || !onlyDigits(form.telefone)) return;
-    const novo = {
-      id: uid("pac"), ...form, telefone: onlyDigits(form.telefone), cpf: "", status: "Novo Contato",
-      documentos: [], historico: [{ id: uid("h"), data: new Date().toISOString(), texto: "Paciente cadastrado no CRM." }],
-    };
-    setPatients([novo, ...patients]);
+    setSaving(true);
+    await createPatientFn({ ...form, telefone: onlyDigits(form.telefone), status: "Novo Contato" }, "Paciente cadastrado no CRM.");
+    setSaving(false);
     onClose();
   };
 
   return (
     <Modal open onClose={onClose} title="Novo paciente" subtitle="Cadastre os dados iniciais de contato." width={540}
-      footer={<><Btn variant="ghost" onClick={onClose}>Cancelar</Btn><Btn icon={Save} onClick={salvar}>Salvar paciente</Btn></>}>
+      footer={<><Btn variant="ghost" onClick={onClose}>Cancelar</Btn><Btn icon={Save} onClick={salvar} disabled={saving}>{saving ? "Salvando…" : "Salvar paciente"}</Btn></>}>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="sm:col-span-2"><Field label="Nome completo" required><Input value={form.nome} onChange={set("nome")} placeholder="Ex.: Maria da Silva" /></Field></div>
         <Field label="WhatsApp" required><Input value={formatPhone(form.telefone)} onChange={set("telefone")} placeholder="(65) 99999-9999" /></Field>
@@ -1154,22 +710,43 @@ function NewPatientModal({ onClose }) {
 }
 
 function PatientDrawer({ patient, onClose }) {
-  const { patients, setPatients, appointments, orders, units } = useCRM();
+  const { appointments, orders, units, updatePatientFieldsFn, addPatientHistoricoFn, addPatientDocumentosFn, removePatientDocumentoFn } = useCRM();
   const [tab, setTab] = useState("dados");
+  const [draft, setDraft] = useState(patient);
+  const [savingDados, setSavingDados] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const fileRef = useRef(null);
 
-  const update = (fields) => setPatients(patients.map((p) => (p.id === patient.id ? { ...p, ...fields } : p)));
-  const logHist = (texto) => update({ historico: [{ id: uid("h"), data: new Date().toISOString(), texto }, ...patient.historico] });
+  useEffect(() => { setDraft(patient); }, [patient.id]);
 
-  const handleFiles = (fileList, tipo) => {
-    const novos = Array.from(fileList).map((f) => ({
-      id: uid("doc"), nome: f.name, tipo, tamanho: f.size, dataUpload: new Date().toISOString(), url: URL.createObjectURL(f),
-    }));
-    update({ documentos: [...novos, ...patient.documentos] });
-    logHist(`${novos.length} documento(s) anexado(s) — ${tipo}.`);
+  const setDraftField = (k) => (e) => setDraft((d) => ({ ...d, [k]: e.target.value }));
+
+  const salvarDados = async () => {
+    setSavingDados(true);
+    await updatePatientFieldsFn(patient.id, {
+      nome: draft.nome, telefone: draft.telefone, dataNascimento: draft.dataNascimento, cpf: draft.cpf,
+      cidade: draft.cidade, uf: draft.uf, endereco: draft.endereco, fonoaudiologo: draft.fonoaudiologo, observacoes: draft.observacoes,
+    });
+    setSavingDados(false);
   };
 
-  const removeDoc = (id) => update({ documentos: patient.documentos.filter((d) => d.id !== id) });
+  const alterarStatus = async (novoStatus) => {
+    await updatePatientFieldsFn(patient.id, { status: novoStatus });
+    await addPatientHistoricoFn(patient.id, `Status alterado para "${novoStatus}".`);
+  };
+
+  const handleFiles = async (fileList, tipo) => {
+    setUploading(true);
+    await addPatientDocumentosFn(patient.id, fileList, tipo);
+    setUploading(false);
+  };
+
+  const removeDoc = (doc) => removePatientDocumentoFn(patient.id, doc);
+
+  const handleDownload = async (doc) => {
+    const url = await api.getDocumentUrl(doc.storagePath);
+    window.open(url, "_blank", "noopener");
+  };
 
   const patientAppointments = appointments.filter((a) => a.pacienteId === patient.id).sort((a, b) => new Date(b.data) - new Date(a.data));
   const patientOrders = orders.filter((o) => o.pacienteId === patient.id);
@@ -1191,7 +768,7 @@ function PatientDrawer({ patient, onClose }) {
             <div>
               <h3 className="imv-t-165 font-extrabold leading-tight" style={{ color: C.ink, fontFamily: "Manrope, sans-serif" }}>{patient.nome}</h3>
               <div className="mt-1 flex items-center gap-2">
-                <Select value={patient.status} onChange={(e) => { update({ status: e.target.value }); logHist(`Status alterado para "${e.target.value}".`); }} style={{ width: "auto" }}>
+                <Select value={patient.status} onChange={(e) => alterarStatus(e.target.value)} style={{ width: "auto" }}>
                   {STATUS_PACIENTE.map((s) => <option key={s}>{s}</option>)}
                 </Select>
               </div>
@@ -1217,16 +794,21 @@ function PatientDrawer({ patient, onClose }) {
 
         <div className="flex-1 overflow-y-auto px-6 py-5">
           {tab === "dados" && (
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <Field label="Nome completo"><Input value={patient.nome} onChange={(e) => update({ nome: e.target.value })} /></Field>
-              <Field label="WhatsApp"><Input value={formatPhone(patient.telefone)} onChange={(e) => update({ telefone: onlyDigits(e.target.value) })} /></Field>
-              <Field label="Data de nascimento"><Input type="date" value={patient.dataNascimento} onChange={(e) => update({ dataNascimento: e.target.value })} /></Field>
-              <Field label="CPF"><Input value={patient.cpf} onChange={(e) => update({ cpf: e.target.value })} placeholder="000.000.000-00" /></Field>
-              <Field label="Cidade"><Input value={patient.cidade} onChange={(e) => update({ cidade: e.target.value })} /></Field>
-              <Field label="UF"><Input value={patient.uf} maxLength={2} onChange={(e) => update({ uf: e.target.value.toUpperCase() })} /></Field>
-              <div className="sm:col-span-2"><Field label="Endereço"><Input value={patient.endereco} onChange={(e) => update({ endereco: e.target.value })} placeholder="Rua, número, bairro, CEP" /></Field></div>
-              <div className="sm:col-span-2"><Field label="Fonoaudiólogo responsável"><Input value={patient.fonoaudiologo} onChange={(e) => update({ fonoaudiologo: e.target.value })} /></Field></div>
-              <div className="sm:col-span-2"><Field label="Observações"><Textarea rows={4} value={patient.observacoes} onChange={(e) => update({ observacoes: e.target.value })} /></Field></div>
+            <div className="flex flex-col gap-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <Field label="Nome completo"><Input value={draft.nome} onChange={setDraftField("nome")} /></Field>
+                <Field label="WhatsApp"><Input value={formatPhone(draft.telefone)} onChange={(e) => setDraft((d) => ({ ...d, telefone: onlyDigits(e.target.value) }))} /></Field>
+                <Field label="Data de nascimento"><Input type="date" value={draft.dataNascimento} onChange={setDraftField("dataNascimento")} /></Field>
+                <Field label="CPF"><Input value={draft.cpf} onChange={setDraftField("cpf")} placeholder="000.000.000-00" /></Field>
+                <Field label="Cidade"><Input value={draft.cidade} onChange={setDraftField("cidade")} /></Field>
+                <Field label="UF"><Input value={draft.uf} maxLength={2} onChange={(e) => setDraft((d) => ({ ...d, uf: e.target.value.toUpperCase() }))} /></Field>
+                <div className="sm:col-span-2"><Field label="Endereço"><Input value={draft.endereco} onChange={setDraftField("endereco")} placeholder="Rua, número, bairro, CEP" /></Field></div>
+                <div className="sm:col-span-2"><Field label="Fonoaudiólogo responsável"><Input value={draft.fonoaudiologo} onChange={setDraftField("fonoaudiologo")} /></Field></div>
+                <div className="sm:col-span-2"><Field label="Observações"><Textarea rows={4} value={draft.observacoes} onChange={setDraftField("observacoes")} /></Field></div>
+              </div>
+              <div>
+                <Btn icon={Save} onClick={salvarDados} disabled={savingDados}>{savingDados ? "Salvando…" : "Salvar alterações"}</Btn>
+              </div>
             </div>
           )}
 
@@ -1239,11 +821,12 @@ function PatientDrawer({ patient, onClose }) {
                 <div className="flex flex-wrap justify-center gap-2">
                   {TIPOS_DOCUMENTO.map((tipo) => (
                     <label key={tipo} className="cursor-pointer">
-                      <input type="file" multiple hidden onChange={(e) => e.target.files.length && handleFiles(e.target.files, tipo)} />
-                      <span className="inline-flex items-center rounded-lg px-3 py-1.5 imv-t-12 font-bold" style={{ background: C.cream, color: C.tealDark, border: `1px solid ${C.border}` }}>+ {tipo}</span>
+                      <input type="file" multiple hidden disabled={uploading} onChange={(e) => e.target.files.length && handleFiles(e.target.files, tipo)} />
+                      <span className="inline-flex items-center rounded-lg px-3 py-1.5 imv-t-12 font-bold" style={{ background: C.cream, color: C.tealDark, border: `1px solid ${C.border}`, opacity: uploading ? 0.5 : 1 }}>+ {tipo}</span>
                     </label>
                   ))}
                 </div>
+                {uploading && <p className="mt-2 imv-t-12" style={{ color: C.sub }}>Enviando…</p>}
               </div>
 
               {patient.documentos.length === 0 ? (
@@ -1257,8 +840,8 @@ function PatientDrawer({ patient, onClose }) {
                         <div className="truncate imv-t-13 font-bold" style={{ color: C.ink }}>{d.nome}</div>
                         <div className="imv-t-115" style={{ color: C.sub }}>{d.tipo} · {(d.tamanho / 1024).toFixed(0)} KB · {formatDateBR(d.dataUpload)}</div>
                       </div>
-                      <a href={d.url} download={d.nome} target="_blank" rel="noreferrer"><IconBtn icon={Download} title="Baixar" tone="teal" /></a>
-                      <IconBtn icon={Trash2} title="Remover" tone="danger" onClick={() => removeDoc(d.id)} />
+                      <IconBtn icon={Download} title="Baixar" tone="teal" onClick={() => handleDownload(d)} />
+                      <IconBtn icon={Trash2} title="Remover" tone="danger" onClick={() => removeDoc(d)} />
                     </div>
                   ))}
                 </div>
@@ -1438,7 +1021,7 @@ function AgendaPage() {
 }
 
 function AppointmentModal({ appointment, defaultDate, onClose }) {
-  const { patients, appointments, setAppointments, units } = useCRM();
+  const { patients, units, createAppointmentFn, updateAppointmentFn, deleteAppointmentFn } = useCRM();
   const isEdit = !!appointment && !appointment.__markConfirmed;
   const autoConfirm = appointment?.__markConfirmed;
 
@@ -1455,23 +1038,23 @@ function AppointmentModal({ appointment, defaultDate, onClose }) {
 
   useEffect(() => {
     if (autoConfirm) {
-      setAppointments(appointments.map((a) => (a.id === appointment.id ? { ...a, status: "Confirmado", confirmadoEm: new Date().toISOString() } : a)));
+      updateAppointmentFn(appointment.id, { status: "Confirmado", confirmadoEm: new Date().toISOString() });
       onClose();
     }
     // eslint-disable-next-line
   }, []);
   if (autoConfirm) return null;
 
-  const salvar = () => {
+  const salvar = async () => {
     if (isEdit) {
-      setAppointments(appointments.map((a) => (a.id === appointment.id ? { ...a, ...form } : a)));
+      await updateAppointmentFn(appointment.id, form);
     } else {
-      setAppointments([...appointments, { id: uid("ag"), ...form, confirmadoEm: null }]);
+      await createAppointmentFn({ ...form, confirmadoEm: null });
     }
     onClose();
   };
 
-  const excluir = () => { setAppointments(appointments.filter((a) => a.id !== appointment.id)); onClose(); };
+  const excluir = async () => { await deleteAppointmentFn(appointment.id); onClose(); };
 
   return (
     <Modal open onClose={onClose} title={isEdit ? "Editar agendamento" : "Novo agendamento"} width={520}
@@ -1627,7 +1210,7 @@ function ItemsTable({ itens, setItens, bonificacao }) {
 }
 
 function OrderFormModal({ onClose }) {
-  const { patients, units, orders, setOrders, updatePatient } = useCRM();
+  const { patients, units, orders, createOrderFn, updatePatientFieldsFn, addPatientHistoricoFn } = useCRM();
   const [pacienteId, setPacienteId] = useState(patients[0]?.id || "");
   const [unidadeId, setUnidadeId] = useState(units[0]?.id || "");
   const [enderecoCustom, setEnderecoCustom] = useState("");
@@ -1636,6 +1219,7 @@ function OrderFormModal({ onClose }) {
   const [fonoaudiologo, setFonoaudiologo] = useState("");
   const [itens, setItens] = useState([]);
   const [bonificacao, setBonificacao] = useState([]);
+  const [saving, setSaving] = useState(false);
 
   const paciente = patients.find((p) => p.id === pacienteId);
   const unidade = units.find((u) => u.id === unidadeId);
@@ -1645,28 +1229,27 @@ function OrderFormModal({ onClose }) {
     setter([...list, { catalogoId: r.id, nome: r.nome, codigo: r.codigo, quantidade: 1, precoUnitario: r.preco }]);
   };
 
-  const salvar = () => {
+  const salvar = async () => {
     if (!pacienteId || itens.length === 0) return;
+    setSaving(true);
     const ano = String(new Date().getFullYear()).slice(-2);
     const seq = 660 + orders.length + 1;
     const numero = `${seq}.${unidade?.codigo || "00"}.${ano}`;
-    const novo = {
-      id: uid("ped"), numero, idFabrica: String(900000 + orders.length + 1),
+    await createOrderFn({
+      numero, idFabrica: String(900000 + orders.length + 1),
       pacienteId, unidadeId, enderecoEntregaCustom: usarEnderecoCustom ? enderecoCustom : "",
       condicaoPagamento, fonoaudiologo: fonoaudiologo || paciente?.fonoaudiologo || "",
-      itens, bonificacao, status: "Aguardando Faturamento", nf: null, series: [], criadoEm: new Date().toISOString(),
-    };
-    setOrders([novo, ...orders]);
-    updatePatient(pacienteId, {
-      status: "Pedido em Andamento",
-      historico: [{ id: uid("h"), data: new Date().toISOString(), texto: `Pedido ${numero} criado e enviado para faturamento.` }, ...(paciente?.historico || [])],
+      itens, bonificacao, status: "Aguardando Faturamento",
     });
+    await updatePatientFieldsFn(pacienteId, { status: "Pedido em Andamento" });
+    await addPatientHistoricoFn(pacienteId, `Pedido ${numero} criado e enviado para faturamento.`);
+    setSaving(false);
     onClose();
   };
 
   return (
     <Modal open onClose={onClose} title="Novo pedido de aparelho" subtitle="Selecione o paciente, defina o endereço de entrega e monte os itens do pedido e da bonificação." width={720}
-      footer={<><Btn variant="ghost" onClick={onClose}>Cancelar</Btn><Btn icon={Save} onClick={salvar} disabled={!pacienteId || itens.length === 0}>Criar pedido</Btn></>}>
+      footer={<><Btn variant="ghost" onClick={onClose}>Cancelar</Btn><Btn icon={Save} onClick={salvar} disabled={!pacienteId || itens.length === 0 || saving}>{saving ? "Criando…" : "Criar pedido"}</Btn></>}>
       <div className="flex flex-col gap-5">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label="Paciente" required><Select value={pacienteId} onChange={(e) => setPacienteId(e.target.value)}>{patients.map((p) => <option key={p.id} value={p.id}>{p.nome}</option>)}</Select></Field>
@@ -1702,21 +1285,20 @@ function OrderFormModal({ onClose }) {
   );
 }
 
-function OrderDetailModal({ order, onClose }) {
-  const { patients, units, orders, setOrders, updatePatient } = useCRM();
+function OrderDetailModal({ order: orderProp, onClose }) {
+  const { patients, units, orders, updateOrderStatusFn, addPatientHistoricoFn, updatePatientFieldsFn } = useCRM();
   const [showBilling, setShowBilling] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
+  const order = orders.find((o) => o.id === orderProp.id) || orderProp;
   const paciente = patients.find((p) => p.id === order.pacienteId);
   const unidade = units.find((u) => u.id === order.unidadeId);
   const total = order.itens.reduce((s, it) => s + it.quantidade * it.precoUnitario, 0);
   const totalBoni = order.bonificacao.reduce((s, it) => s + it.quantidade * it.precoUnitario, 0);
 
-  const avancarStatus = (novo) => {
-    setOrders(orders.map((o) => (o.id === order.id ? { ...o, status: novo } : o)));
-    updatePatient(order.pacienteId, {
-      historico: [{ id: uid("h"), data: new Date().toISOString(), texto: `Pedido ${order.numero} → status "${novo}".` }, ...(paciente?.historico || [])],
-      ...(novo === "Entregue e Documentado" ? { status: "Adaptado" } : {}),
-    });
+  const avancarStatus = async (novo) => {
+    await updateOrderStatusFn(order.id, novo);
+    await addPatientHistoricoFn(order.pacienteId, `Pedido ${order.numero} → status "${novo}".`);
+    if (novo === "Entregue e Documentado") await updatePatientFieldsFn(order.pacienteId, { status: "Adaptado" });
   };
 
   const idx = STATUS_PEDIDO.indexOf(order.status);
@@ -1778,25 +1360,27 @@ function MiniInfo({ label, value, mono }) {
 }
 
 function BillingModal({ order, onClose, onDone }) {
-  const { orders, setOrders, patients, updatePatient } = useCRM();
-  const aparelhos = order.itens.filter((it) => CATALOGO_INICIAL.find((c) => c.id === it.catalogoId)?.cat === "APARELHOS AASI" || /RADIANT|CAPTIVATE|TREK|CV\d/i.test(it.nome));
+  const { catalog, setOrderBillingFn, addPatientHistoricoFn } = useCRM();
+  const aparelhos = order.itens.filter((it) => catalog.find((c) => c.id === it.catalogoId)?.cat === "APARELHOS AASI" || /RADIANT|CAPTIVATE|TREK|CV\d/i.test(it.nome));
   const [nf, setNf] = useState({ numero: "", data: formatDateInputValue(today), fabricante: FABRICANTES[0] });
   const [series, setSeries] = useState(
     aparelhos.flatMap((it) => Array.from({ length: it.quantidade }).map((_, i) => ({ catalogoId: it.catalogoId, nome: it.nome, numeroSerie: "" })))
   );
+  const [saving, setSaving] = useState(false);
 
   const setSerie = (i, v) => setSeries(series.map((s, idx) => (idx === i ? { ...s, numeroSerie: v } : s)));
 
-  const salvar = () => {
-    setOrders(orders.map((o) => (o.id === order.id ? { ...o, status: "Faturado", nf, series } : o)));
-    const p = patients.find((x) => x.id === order.pacienteId);
-    updatePatient(order.pacienteId, { historico: [{ id: uid("h"), data: new Date().toISOString(), texto: `Pedido ${order.numero} faturado — NF ${nf.numero}.` }, ...(p?.historico || [])] });
+  const salvar = async () => {
+    setSaving(true);
+    await setOrderBillingFn(order.id, nf, series);
+    await addPatientHistoricoFn(order.pacienteId, `Pedido ${order.numero} faturado — NF ${nf.numero}.`);
+    setSaving(false);
     onDone();
   };
 
   return (
     <Modal open onClose={onClose} title="Registrar faturamento" subtitle={`Pedido ${order.numero}`} width={560}
-      footer={<><Btn variant="ghost" onClick={onClose}>Cancelar</Btn><Btn icon={Save} onClick={salvar} disabled={!nf.numero}>Salvar faturamento</Btn></>}>
+      footer={<><Btn variant="ghost" onClick={onClose}>Cancelar</Btn><Btn icon={Save} onClick={salvar} disabled={!nf.numero || saving}>{saving ? "Salvando…" : "Salvar faturamento"}</Btn></>}>
       <div className="flex flex-col gap-4">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <Field label="Nº da Nota Fiscal" required><Input value={nf.numero} onChange={(e) => setNf({ ...nf, numero: e.target.value })} placeholder="124.081" /></Field>
@@ -1923,7 +1507,7 @@ function TermsPrintModal({ order, paciente, unidade, onClose }) {
    Catálogo de Aparelhos
    ========================================================================= */
 function CatalogoPage() {
-  const { catalog, setCatalog } = useCRM();
+  const { catalog, deleteCatalogItemFn } = useCRM();
   const [query, setQuery] = useState("");
   const [cat, setCat] = useState("Todas");
   const [editing, setEditing] = useState(null);
@@ -1932,7 +1516,7 @@ function CatalogoPage() {
   const categorias = ["Todas", ...Array.from(new Set(catalog.map((c) => c.cat)))];
   const filtered = catalog.filter((c) => (cat === "Todas" || c.cat === cat) && (c.nome + c.codigo).toLowerCase().includes(query.toLowerCase()));
 
-  const remove = (id) => setCatalog(catalog.filter((c) => c.id !== id));
+  const remove = (id) => deleteCatalogItemFn(id);
 
   return (
     <div className="flex flex-col gap-5 p-5 lg:p-8">
@@ -1977,14 +1561,14 @@ function CatalogoPage() {
 }
 
 function CatalogItemModal({ item, onClose }) {
-  const { catalog, setCatalog } = useCRM();
+  const { createCatalogItemFn, updateCatalogItemFn } = useCRM();
   const [form, setForm] = useState({ cat: item?.cat || "APARELHOS AASI", nome: item?.nome || "", codigo: item?.codigo || "", preco: item?.preco || 0 });
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
 
-  const salvar = () => {
+  const salvar = async () => {
     if (!form.nome.trim()) return;
-    if (item) setCatalog(catalog.map((c) => (c.id === item.id ? { ...c, ...form, preco: Number(form.preco) } : c)));
-    else setCatalog([{ id: uid("cat"), ...form, preco: Number(form.preco) }, ...catalog]);
+    if (item) await updateCatalogItemFn(item.id, { ...form, preco: Number(form.preco) });
+    else await createCatalogItemFn({ ...form, preco: Number(form.preco) });
     onClose();
   };
 
@@ -2007,11 +1591,11 @@ function CatalogItemModal({ item, onClose }) {
    Unidades
    ========================================================================= */
 function UnidadesPage() {
-  const { units, setUnits } = useCRM();
+  const { units, deleteUnitFn } = useCRM();
   const [editing, setEditing] = useState(null);
   const [showNew, setShowNew] = useState(false);
 
-  const remove = (id) => setUnits(units.filter((u) => u.id !== id));
+  const remove = (id) => deleteUnitFn(id);
 
   return (
     <div className="flex flex-col gap-5 p-5 lg:p-8">
@@ -2047,14 +1631,14 @@ function UnidadesPage() {
 }
 
 function UnitModal({ unit, onClose }) {
-  const { units, setUnits } = useCRM();
+  const { createUnitFn, updateUnitFn } = useCRM();
   const [form, setForm] = useState({ codigo: unit?.codigo || "", cidade: unit?.cidade || "", uf: unit?.uf || "", endereco: unit?.endereco || "", telefone: unit?.telefone || "" });
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
 
-  const salvar = () => {
+  const salvar = async () => {
     if (!form.cidade.trim()) return;
-    if (unit) setUnits(units.map((u) => (u.id === unit.id ? { ...u, ...form } : u)));
-    else setUnits([...units, { id: uid("un"), ...form }]);
+    if (unit) await updateUnitFn(unit.id, form);
+    else await createUnitFn(form);
     onClose();
   };
 
@@ -2087,30 +1671,169 @@ const PAGE_META = {
 };
 
 export default function App() {
-  const [page, setPage] = useState("dashboard");
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const [patients, setPatients] = useState(PACIENTES_INICIAIS);
-  const [appointments, setAppointments] = useState(() => seedAppointments(PACIENTES_INICIAIS));
-  const [orders, setOrders] = useState(() => seedOrders(PACIENTES_INICIAIS));
-  const [catalog, setCatalog] = useState(CATALOGO_INICIAL);
-  const [units, setUnits] = useState(UNIDADES_INICIAIS);
-
-  const updatePatient = (id, fields) => setPatients((prev) => prev.map((p) => (p.id === id ? { ...p, ...fields } : p)));
-
-  const ctx = { patients, setPatients, updatePatient, appointments, setAppointments, orders, setOrders, catalog, setCatalog, units, setUnits };
-
-  const meta = PAGE_META[page];
-
   return (
-    <CRM.Provider value={ctx}>
+    <AuthProvider>
       <style>{FONTS}</style>
       <style>{`
         .imv-wave-bar { animation: imvwave 1s ease-in-out infinite alternate; }
         @keyframes imvwave { from { transform: scaleY(0.5); } to { transform: scaleY(1); } }
         @media (prefers-reduced-motion: reduce) { .imv-wave-bar { animation: none; } }
       `}</style>
+      <Root />
+    </AuthProvider>
+  );
+}
+
+function FullScreenNotice({ children }) {
+  return (
+    <div className="flex min-h-screen items-center justify-center p-6" style={{ background: C.tealDarker, fontFamily: "Inter, sans-serif" }}>
+      {children}
+    </div>
+  );
+}
+
+function Root() {
+  if (!isSupabaseConfigured) {
+    return (
+      <FullScreenNotice>
+        <div className="max-w-md rounded-2xl p-8 text-center" style={{ background: "#fff" }}>
+          <h2 className="imv-t-17 font-extrabold" style={{ color: C.ink, fontFamily: "Manrope, sans-serif" }}>Configuração do Supabase pendente</h2>
+          <p className="mt-2 imv-t-13" style={{ color: C.sub }}>
+            Defina as variáveis <code>VITE_SUPABASE_URL</code> e <code>VITE_SUPABASE_ANON_KEY</code> (no <code>.env</code> local e nas Environment Variables do projeto na Vercel) para conectar o CRM ao banco de dados.
+          </p>
+        </div>
+      </FullScreenNotice>
+    );
+  }
+
+  const { session, loading } = useAuth();
+  if (loading) return <FullScreenNotice><SoundWave size={28} color="#fff" /></FullScreenNotice>;
+  if (!session) return <Login />;
+  return <CrmApp />;
+}
+
+function CrmApp() {
+  const { profile, user, signOut } = useAuth();
+  const [page, setPage] = useState("dashboard");
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [patients, setPatients] = useState([]);
+  const [appointments, setAppointments] = useState([]);
+  const [orders, setOrders] = useState([]);
+  const [catalog, setCatalog] = useState([]);
+  const [units, setUnits] = useState([]);
+  const [dataLoading, setDataLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
+
+  useEffect(() => {
+    let alive = true;
+    setDataLoading(true);
+    Promise.all([api.listPatients(), api.listAppointments(), api.listOrders(), api.listCatalog(), api.listUnits()])
+      .then(([p, a, o, c, u]) => {
+        if (!alive) return;
+        setPatients(p);
+        setAppointments(a);
+        setOrders(o);
+        setCatalog(c);
+        setUnits(u);
+        setLoadError(null);
+      })
+      .catch((err) => { if (alive) setLoadError(err.message || String(err)); })
+      .finally(() => { if (alive) setDataLoading(false); });
+    return () => { alive = false; };
+  }, []);
+
+  const createPatientFn = async (form, historicoTexto) => {
+    const novo = await api.createPatient(form, historicoTexto);
+    setPatients((prev) => [novo, ...prev]);
+    return novo;
+  };
+  const updatePatientFieldsFn = async (id, fields) => {
+    await api.updatePatient(id, fields);
+    setPatients((prev) => prev.map((p) => (p.id === id ? { ...p, ...fields } : p)));
+  };
+  const addPatientHistoricoFn = async (id, texto) => {
+    const h = await api.addHistorico(id, texto);
+    setPatients((prev) => prev.map((p) => (p.id === id ? { ...p, historico: [h, ...p.historico] } : p)));
+  };
+  const addPatientDocumentosFn = async (id, fileList, tipo) => {
+    const novos = await Promise.all(Array.from(fileList).map((f) => api.addDocumento(id, f, tipo)));
+    setPatients((prev) => prev.map((p) => (p.id === id ? { ...p, documentos: [...novos, ...p.documentos] } : p)));
+    await addPatientHistoricoFn(id, `${novos.length} documento(s) anexado(s) — ${tipo}.`);
+  };
+  const removePatientDocumentoFn = async (id, doc) => {
+    await api.removeDocumento(doc);
+    setPatients((prev) => prev.map((p) => (p.id === id ? { ...p, documentos: p.documentos.filter((d) => d.id !== doc.id) } : p)));
+  };
+
+  const createAppointmentFn = async (form) => {
+    const novo = await api.createAppointment(form);
+    setAppointments((prev) => [...prev, novo]);
+    return novo;
+  };
+  const updateAppointmentFn = async (id, fields) => {
+    await api.updateAppointment(id, fields);
+    setAppointments((prev) => prev.map((a) => (a.id === id ? { ...a, ...fields } : a)));
+  };
+  const deleteAppointmentFn = async (id) => {
+    await api.deleteAppointment(id);
+    setAppointments((prev) => prev.filter((a) => a.id !== id));
+  };
+
+  const createCatalogItemFn = async (item) => {
+    const novo = await api.createCatalogItem(item);
+    setCatalog((prev) => [novo, ...prev]);
+  };
+  const updateCatalogItemFn = async (id, fields) => {
+    await api.updateCatalogItem(id, fields);
+    setCatalog((prev) => prev.map((c) => (c.id === id ? { ...c, ...fields } : c)));
+  };
+  const deleteCatalogItemFn = async (id) => {
+    await api.deleteCatalogItem(id);
+    setCatalog((prev) => prev.filter((c) => c.id !== id));
+  };
+
+  const createUnitFn = async (unit) => {
+    const novo = await api.createUnit(unit);
+    setUnits((prev) => [...prev, novo]);
+  };
+  const updateUnitFn = async (id, fields) => {
+    await api.updateUnit(id, fields);
+    setUnits((prev) => prev.map((u) => (u.id === id ? { ...u, ...fields } : u)));
+  };
+  const deleteUnitFn = async (id) => {
+    await api.deleteUnit(id);
+    setUnits((prev) => prev.filter((u) => u.id !== id));
+  };
+
+  const createOrderFn = async (order) => {
+    const novo = await api.createOrder(order);
+    setOrders((prev) => [novo, ...prev]);
+    return novo;
+  };
+  const updateOrderStatusFn = async (id, status) => {
+    await api.updateOrderStatus(id, status);
+    setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, status } : o)));
+  };
+  const setOrderBillingFn = async (id, nf, series) => {
+    await api.setOrderBilling(id, nf, series);
+    setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, status: "Faturado", nf, series } : o)));
+  };
+
+  const ctx = {
+    patients, appointments, orders, catalog, units,
+    createPatientFn, updatePatientFieldsFn, addPatientHistoricoFn, addPatientDocumentosFn, removePatientDocumentoFn,
+    createAppointmentFn, updateAppointmentFn, deleteAppointmentFn,
+    createCatalogItemFn, updateCatalogItemFn, deleteCatalogItemFn,
+    createUnitFn, updateUnitFn, deleteUnitFn,
+    createOrderFn, updateOrderStatusFn, setOrderBillingFn,
+  };
+
+  const meta = PAGE_META[page];
+
+  return (
+    <CRM.Provider value={ctx}>
       <div className="flex min-h-screen w-full" style={{ background: C.cream, fontFamily: "Inter, sans-serif" }}>
-        <Sidebar page={page} setPage={setPage} mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
+        <Sidebar page={page} setPage={setPage} mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} profile={profile} user={user} signOut={signOut} />
         <div className="flex min-h-screen flex-1 flex-col">
           <Topbar
             title={meta.title}
@@ -2123,12 +1846,24 @@ export default function App() {
               </div>
             }
           />
-          {page === "dashboard" && <Dashboard goTo={setPage} />}
-          {page === "pacientes" && <PacientesPage />}
-          {page === "agenda" && <AgendaPage />}
-          {page === "pedidos" && <PedidosPage />}
-          {page === "catalogo" && <CatalogoPage />}
-          {page === "unidades" && <UnidadesPage />}
+          {dataLoading ? (
+            <div className="flex flex-1 items-center justify-center p-10">
+              <p className="imv-t-13 font-semibold" style={{ color: C.sub }}>Carregando dados…</p>
+            </div>
+          ) : loadError ? (
+            <div className="p-10">
+              <p className="imv-t-13 font-semibold" style={{ color: C.red }}>Erro ao carregar dados do banco: {loadError}</p>
+            </div>
+          ) : (
+            <>
+              {page === "dashboard" && <Dashboard goTo={setPage} />}
+              {page === "pacientes" && <PacientesPage />}
+              {page === "agenda" && <AgendaPage />}
+              {page === "pedidos" && <PedidosPage />}
+              {page === "catalogo" && <CatalogoPage />}
+              {page === "unidades" && <UnidadesPage />}
+            </>
+          )}
         </div>
       </div>
     </CRM.Provider>
