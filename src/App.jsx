@@ -1485,7 +1485,7 @@ function BillingModal({ order, onClose, onDone }) {
 function TermoLogo() {
   return (
     <div className="flex justify-center">
-      <img src={imouvirLogo} alt="IMOUVIR" style={{ height: 42, objectFit: "contain" }} />
+      <img src={imouvirLogo} alt="IMOUVIR" style={{ height: 36, objectFit: "contain" }} />
     </div>
   );
 }
@@ -1497,6 +1497,7 @@ function TermsPrintModal({ order, paciente, unidade, onClose }) {
   return (
     <div className="imv-print-overlay fixed inset-0 imv-z-60 overflow-y-auto py-6" style={{ background: "rgba(6,40,42,0.55)" }}>
       <style>{`
+        @page { size: A4; margin: 10mm; }
         @media print {
           body * { visibility: hidden; }
           #imv-print-area, #imv-print-area * { visibility: visible; }
@@ -1505,6 +1506,7 @@ function TermsPrintModal({ order, paciente, unidade, onClose }) {
           .imv-no-print { display: none !important; }
           .imv-page-2 { page-break-before: always; }
           .imv-avoid-break { page-break-inside: avoid; }
+          .imv-term-page { padding: 0 !important; }
         }
       `}</style>
       <div className="mx-auto flex imv-maxw-820 flex-col gap-3 px-4">
@@ -1517,16 +1519,16 @@ function TermsPrintModal({ order, paciente, unidade, onClose }) {
         </div>
 
         <div id="imv-print-area" className="flex flex-col gap-3">
-        <div className="rounded-xl p-7" style={{ background: "#fff", fontFamily: "Inter, sans-serif", color: "#111" }}>
+        <div className="imv-term-page rounded-xl p-6" style={{ background: "#fff", fontFamily: "Inter, sans-serif", color: "#111" }}>
           <TermoLogo />
           <h2 className="mt-3 text-center imv-t-16 font-extrabold">Termo de Recebimento</h2>
           <p className="mt-1 text-center imv-t-115 font-semibold text-gray-500">PROJETO SAÚDE AUDITIVA – INSTITUTO MAÇÔNICO OUVIR - IMOUVIR</p>
-          <p className="mt-3 imv-t-125 leading-snug">
+          <p className="mt-2 imv-t-125 leading-snug" style={{ fontSize: 11 }}>
             Através deste termo confirmo o recebimento do(s) aparelho(s) auditivo(s) e respectiva nota fiscal descritos no quadro abaixo, bem como recebi as orientações e cuidados necessários para proteção e bom funcionamento do(s) aparelho(s).
           </p>
-          <p className="mt-3 imv-t-125 font-bold text-center">{order.numero} - PCT {(paciente?.nome || "").toUpperCase()}</p>
+          <p className="mt-2 imv-t-125 font-bold text-center">{order.numero} - PCT {(paciente?.nome || "").toUpperCase()}</p>
 
-          <table className="mt-2 w-full border-collapse imv-t-12">
+          <table className="mt-1.5 w-full border-collapse leading-tight" style={{ fontSize: 10.5 }}>
             <tbody>
               <tr><td className="border border-gray-400 px-2 py-0.5 font-semibold" colSpan={1}>NF {order.nf?.numero} DE {formatDateBR(order.nf?.data)}</td><td className="border border-gray-400 px-2 py-0.5">{order.nf?.fabricante}</td></tr>
               {order.series.length > 0 ? order.series.map((s, i) => (
@@ -1535,12 +1537,12 @@ function TermsPrintModal({ order, paciente, unidade, onClose }) {
             </tbody>
           </table>
 
-          <p className="mt-3 imv-t-11 font-bold uppercase leading-relaxed text-center">
+          <p className="mt-2 imv-t-11 font-bold uppercase leading-tight text-center">
             Garantia do fabricante – 1 ano para defeitos de fabricação do aparelho, com exceção dos receptores, que possuem 3 meses de garantia — sujeito à análise e aprovação do laboratório da empresa.
           </p>
 
-          <h3 className="mt-3 imv-t-13 font-extrabold">Cuidados a serem observados para preservação do Aparelho Auditivo</h3>
-          <ul className="mt-2 list-disc space-y-1 pl-5 imv-t-105 leading-snug">
+          <h3 className="mt-2 imv-t-13 font-extrabold">Cuidados a serem observados para preservação do Aparelho Auditivo</h3>
+          <ul className="mt-1.5 list-disc space-y-0.5 pl-5 leading-tight" style={{ fontSize: 10 }}>
             <li>Proteja seu aparelho auditivo de sujeira. Certifique-se sempre que seus dedos estejam limpos e secos antes de tocar em seus aparelhos auditivos. A entrada do microfone é muito pequena e pode ser obstruída se for manipulada incorretamente.</li>
             <li>Evite impactos. Evite derrubar seu aparelho auditivo sobre superfícies duras. Isto pode ocorrer enquanto você limpa ou troca a pilha. Seja cuidadoso ao inserir ou remover seu aparelho auditivo.</li>
             <li>Não exponha seu aparelho auditivo a altas temperaturas. Não o exponha ao calor. Proteja-o da luz solar (em casa ou no carro) e não o deixe próximo a aquecedores.</li>
@@ -1553,13 +1555,13 @@ function TermsPrintModal({ order, paciente, unidade, onClose }) {
             <li>Só efetue reparos com especialistas. Chaves de fenda e óleo em contato com a parte elétrica ou micro-mecânica podem causar danos irreparáveis.</li>
           </ul>
 
-          <div className="mt-5 text-center imv-t-12 imv-avoid-break">
+          <div className="mt-3 text-center imv-t-12 imv-avoid-break">
             <p>{cidadeAssinatura}, {formatDateBR(dataHoje)}</p>
-            <p className="mt-6 border-t border-gray-400 pt-1 mx-auto w-64">Assinatura</p>
+            <p className="mt-4 border-t border-gray-400 pt-1 mx-auto w-64">Assinatura</p>
           </div>
         </div>
 
-        <div className="imv-page-2 rounded-xl p-6" style={{ background: "#fff", fontFamily: "Inter, sans-serif", color: "#111" }}>
+        <div className="imv-page-2 imv-term-page rounded-xl p-6" style={{ background: "#fff", fontFamily: "Inter, sans-serif", color: "#111" }}>
           <TermoLogo />
           <h2 className="mt-3 text-center imv-t-15 font-extrabold">TERMO DE RESPONSABILIDADE E AUTORIZAÇÃO<br />DE USO E DIREITOS DE IMAGEM INDIVIDUAL</h2>
           <p className="mt-1 imv-t-105 leading-tight" style={{ fontSize: 10 }}>
@@ -1988,4 +1990,3 @@ function CrmApp() {
     </CRM.Provider>
   );
 }
-
