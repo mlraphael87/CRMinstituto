@@ -1216,8 +1216,6 @@ function ItemsTable({ itens, setItens, bonificacao }) {
   // "travar" o campo em 1 — o valor só é validado/arredondado ao sair do campo.
   const updateQty = (i, q) => setItens(itens.map((it, idx) => (idx === i ? { ...it, quantidade: q } : it)));
   const commitQty = (i) => setItens(itens.map((it, idx) => (idx === i ? { ...it, quantidade: Math.max(1, Math.round(Number(it.quantidade)) || 1) } : it)));
-  const updatePrice = (i, v) => setItens(itens.map((it, idx) => (idx === i ? { ...it, precoUnitario: v } : it)));
-  const commitPrice = (i) => setItens(itens.map((it, idx) => (idx === i ? { ...it, precoUnitario: Number(it.precoUnitario) || 0 } : it)));
   const remove = (i) => setItens(itens.filter((_, idx) => idx !== i));
 
   if (itens.length === 0) return <p className="rounded-lg px-3 py-3 text-center imv-t-125" style={{ background: C.cream, color: C.sub }}>Nenhum item adicionado ainda.</p>;
@@ -1227,7 +1225,7 @@ function ItemsTable({ itens, setItens, bonificacao }) {
       <table className="w-full imv-t-125">
         <thead><tr style={{ background: C.cream, color: C.sub }}>
           <th className="px-3 py-2 text-left font-bold">Código</th><th className="px-3 py-2 text-left font-bold">Descrição</th>
-          <th className="w-20 px-2 py-2 text-center font-bold">Qtd</th><th className="w-28 px-2 py-2 text-right font-bold">Vl. Unit.</th>
+          <th className="w-20 px-2 py-2 text-center font-bold">Qtd</th>
           <th className="w-28 px-2 py-2 text-right font-bold">Total</th><th className="w-10 px-2 py-2"></th>
         </tr></thead>
         <tbody>
@@ -1236,14 +1234,13 @@ function ItemsTable({ itens, setItens, bonificacao }) {
               <td className="px-3 py-2 font-mono" style={{ color: C.sub }}>{it.codigo || "—"}</td>
               <td className="px-3 py-2 font-semibold" style={{ color: C.ink }}>{it.nome}{bonificacao ? <Gift size={11} className="ml-1 inline" style={{ color: C.coral }} /> : null}</td>
               <td className="px-2 py-2"><input type="number" min={1} value={it.quantidade} onChange={(e) => updateQty(i, e.target.value)} onBlur={() => commitQty(i)} className="w-full rounded-md px-1.5 py-1 text-center" style={{ border: `1px solid ${C.border}` }} /></td>
-              <td className="px-2 py-2"><input type="number" step="0.01" value={it.precoUnitario} onChange={(e) => updatePrice(i, e.target.value)} onBlur={() => commitPrice(i)} className="w-full rounded-md px-1.5 py-1 text-right" style={{ border: `1px solid ${C.border}` }} /></td>
-              <td className="px-2 py-2 text-right font-bold" style={{ color: C.ink }}>{formatBRL(it.quantidade * it.precoUnitario)}</td>
+              <td className="px-2 py-2 text-right font-bold" style={{ color: C.ink }}>{formatBRL((Number(it.quantidade) || 0) * (Number(it.precoUnitario) || 0))}</td>
               <td className="px-2 py-2 text-center"><IconBtn icon={X} title="Remover" tone="danger" onClick={() => remove(i)} /></td>
             </tr>
           ))}
         </tbody>
         <tfoot><tr style={{ borderTop: `1.5px solid ${C.border}`, background: C.cream }}>
-          <td colSpan={4} className="px-3 py-2.5 text-right font-bold" style={{ color: C.ink }}>TOTAL</td>
+          <td colSpan={3} className="px-3 py-2.5 text-right font-bold" style={{ color: C.ink }}>TOTAL</td>
           <td className="px-2 py-2.5 text-right font-extrabold" style={{ color: C.teal }}>{formatBRL(total)}</td><td />
         </tr></tfoot>
       </table>
