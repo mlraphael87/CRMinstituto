@@ -1496,14 +1496,14 @@ function TermoConteudo({ order, paciente, unidade, cidadeAssinatura, dataHoje })
     <>
   <div className="imv-term-page rounded-xl p-6" style={{ background: "#fff", fontFamily: "Arial, Helvetica, sans-serif", color: "#111" }}>
             <TermoLogo />
-            <h2 className="mt-3 text-center font-extrabold" style={{ fontSize: 21 }}>Termo de Recebimento</h2>
-            <p className="mt-1 text-center font-semibold text-gray-500" style={{ fontSize: 14 }}>PROJETO SAÚDE AUDITIVA – INSTITUTO MAÇÔNICO OUVIR - IMOUVIR</p>
-            <p className="mt-2 leading-snug" style={{ fontSize: 14 }}>
+            <h2 className="mt-2 text-center font-extrabold" style={{ fontSize: 24 }}>Termo de Recebimento</h2>
+            <p className="mt-1 text-center font-semibold text-gray-500" style={{ fontSize: 15.5 }}>PROJETO SAÚDE AUDITIVA – INSTITUTO MAÇÔNICO OUVIR - IMOUVIR</p>
+            <p className="mt-1.5 leading-snug" style={{ fontSize: 15.5 }}>
               Através deste termo confirmo o recebimento do(s) aparelho(s) auditivo(s) e respectiva nota fiscal descritos no quadro abaixo, bem como recebi as orientações e cuidados necessários para proteção e bom funcionamento do(s) aparelho(s).
             </p>
-            <p className="mt-2 font-bold text-center" style={{ fontSize: 14 }}>{order.numero} - PCT {(paciente?.nome || "").toUpperCase()}</p>
+            <p className="mt-1.5 font-bold text-center" style={{ fontSize: 15.5 }}>{order.numero} - PCT {(paciente?.nome || "").toUpperCase()}</p>
 
-            <table className="mt-1.5 w-full border-collapse leading-tight" style={{ fontSize: 13.5 }}>
+            <table className="mt-1.5 w-full border-collapse leading-snug" style={{ fontSize: 15 }}>
               <tbody>
                 <tr><td className="border border-gray-400 px-2 py-0.5 font-semibold" colSpan={1}>NF {order.nf?.numero} DE {formatDateBR(order.nf?.data)}</td><td className="border border-gray-400 px-2 py-0.5">{order.nf?.fabricante}</td></tr>
                 {order.series.length > 0 ? order.series.map((s, i) => (
@@ -1512,12 +1512,12 @@ function TermoConteudo({ order, paciente, unidade, cidadeAssinatura, dataHoje })
               </tbody>
             </table>
 
-            <p className="mt-2 font-bold uppercase leading-tight text-center" style={{ fontSize: 13.5 }}>
+            <p className="mt-1.5 font-bold uppercase leading-snug text-center" style={{ fontSize: 15 }}>
               Garantia do fabricante – 1 ano para defeitos de fabricação do aparelho, com exceção dos receptores, que possuem 3 meses de garantia — sujeito à análise e aprovação do laboratório da empresa.
             </p>
 
-            <h3 className="mt-2 font-extrabold" style={{ fontSize: 16 }}>Cuidados a serem observados para preservação do Aparelho Auditivo</h3>
-            <ul className="mt-1.5 list-disc space-y-1 pl-5 leading-snug" style={{ fontSize: 13.5 }}>
+            <h3 className="mt-1.5 font-extrabold" style={{ fontSize: 17.5 }}>Cuidados a serem observados para preservação do Aparelho Auditivo</h3>
+            <ul className="mt-1 list-disc space-y-0.5 pl-5 leading-snug" style={{ fontSize: 14.5 }}>
               <li>Proteja seu aparelho auditivo de sujeira. Certifique-se sempre que seus dedos estejam limpos e secos antes de tocar em seus aparelhos auditivos. A entrada do microfone é muito pequena e pode ser obstruída se for manipulada incorretamente.</li>
               <li>Evite impactos. Evite derrubar seu aparelho auditivo sobre superfícies duras. Isto pode ocorrer enquanto você limpa ou troca a pilha. Seja cuidadoso ao inserir ou remover seu aparelho auditivo.</li>
               <li>Não exponha seu aparelho auditivo a altas temperaturas. Não o exponha ao calor. Proteja-o da luz solar (em casa ou no carro) e não o deixe próximo a aquecedores.</li>
@@ -1530,54 +1530,54 @@ function TermoConteudo({ order, paciente, unidade, cidadeAssinatura, dataHoje })
               <li>Só efetue reparos com especialistas. Chaves de fenda e óleo em contato com a parte elétrica ou micro-mecânica podem causar danos irreparáveis.</li>
             </ul>
 
-            <div className="mt-3 text-center imv-avoid-break" style={{ fontSize: 13.5 }}>
+            <div className="mt-2 text-center imv-avoid-break" style={{ fontSize: 15 }}>
               <p>{cidadeAssinatura}, {formatDateBR(dataHoje)}</p>
-              <p className="mt-4 border-t border-gray-400 pt-1 mx-auto w-64">Assinatura</p>
+              <p className="mt-3 border-t border-gray-400 mx-auto w-72">Assinatura</p>
             </div>
           </div>
 
           <div className="imv-page-2 imv-term-page rounded-xl p-6" style={{ background: "#fff", fontFamily: "Arial, Helvetica, sans-serif", color: "#111" }}>
             <TermoLogo />
-            <h2 className="mt-3 text-center font-extrabold" style={{ fontSize: 19 }}>TERMO DE RESPONSABILIDADE E AUTORIZAÇÃO<br />DE USO E DIREITOS DE IMAGEM INDIVIDUAL</h2>
-            <p className="mt-1.5 leading-snug" style={{ fontSize: 13 }}>
+            <h2 className="mt-2 text-center font-extrabold" style={{ fontSize: 20 }}>TERMO DE RESPONSABILIDADE E AUTORIZAÇÃO<br />DE USO E DIREITOS DE IMAGEM INDIVIDUAL</h2>
+            <p className="mt-1 leading-tight" style={{ fontSize: 13.5 }}>
               Conforme assinatura abaixo, DECLARO que concordo, sem ressalvas, em participar de campanhas de divulgação do “INSTITUTO MAÇÔNICO OUVIR”, por livre e espontânea vontade, ora assumindo toda e qualquer RESPONSABILIDADE por minha participação.
             </p>
 
-            <table className="mt-1.5 w-full border-collapse leading-tight imv-avoid-break" style={{ fontSize: 13 }}>
+            <table className="mt-1 w-full border-collapse leading-snug imv-avoid-break" style={{ fontSize: 14 }}>
               <tbody>
-                <tr><td className="border border-gray-400 px-1.5 py-px font-semibold" colSpan={2}>Nome: {paciente?.nome}</td></tr>
-                <tr><td className="border border-gray-400 px-1.5 py-px">CPF: {paciente?.cpf || "____________"}</td><td className="border border-gray-400 px-1.5 py-px"></td></tr>
-                <tr><td className="border border-gray-400 px-1.5 py-px" colSpan={2}>Endereço: {paciente?.endereco || "____________"}</td></tr>
-                <tr><td className="border border-gray-400 px-1.5 py-px">CEP: ____________</td><td className="border border-gray-400 px-1.5 py-px">Cidade/Estado: {paciente?.cidade}/{paciente?.uf}</td></tr>
-                <tr><td className="border border-gray-400 px-1.5 py-px" colSpan={2}>Data Nasc.: {paciente?.dataNascimento ? formatDateBR(paciente.dataNascimento) : "____________"}</td></tr>
-                <tr><td className="border border-gray-400 bg-gray-100 px-1.5 py-px font-bold" colSpan={2}>DADOS DO RESPONSÁVEL (quando o paciente for menor de idade)</td></tr>
-                <tr><td className="border border-gray-400 px-1.5 py-px" colSpan={2}>Nome: ____________________________________________</td></tr>
-                <tr><td className="border border-gray-400 px-1.5 py-px">CPF: ____________________</td><td className="border border-gray-400 px-1.5 py-px">RG: ____________________</td></tr>
-                <tr><td className="border border-gray-400 px-1.5 py-px" colSpan={2}>Endereço: ____________________________________________</td></tr>
-                <tr><td className="border border-gray-400 px-1.5 py-px">CEP: ____________</td><td className="border border-gray-400 px-1.5 py-px">Cidade/Estado: ____________</td></tr>
-                <tr><td className="border border-gray-400 px-1.5 py-px">Data Nasc.: ____________</td><td className="border border-gray-400 px-1.5 py-px">Fone: ____________</td></tr>
+                <tr><td className="border border-gray-400 px-1.5 py-0 font-semibold" colSpan={2}>Nome: {paciente?.nome}</td></tr>
+                <tr><td className="border border-gray-400 px-1.5 py-0">CPF: {paciente?.cpf || "____________"}</td><td className="border border-gray-400 px-1.5 py-0"></td></tr>
+                <tr><td className="border border-gray-400 px-1.5 py-0" colSpan={2}>Endereço: {paciente?.endereco || "____________"}</td></tr>
+                <tr><td className="border border-gray-400 px-1.5 py-0">CEP: ____________</td><td className="border border-gray-400 px-1.5 py-0">Cidade/Estado: {paciente?.cidade}/{paciente?.uf}</td></tr>
+                <tr><td className="border border-gray-400 px-1.5 py-0" colSpan={2}>Data Nasc.: {paciente?.dataNascimento ? formatDateBR(paciente.dataNascimento) : "____________"}</td></tr>
+                <tr><td className="border border-gray-400 bg-gray-100 px-1.5 py-0 font-bold" colSpan={2}>DADOS DO RESPONSÁVEL (quando o paciente for menor de idade)</td></tr>
+                <tr><td className="border border-gray-400 px-1.5 py-0" colSpan={2}>Nome: ____________________________________________</td></tr>
+                <tr><td className="border border-gray-400 px-1.5 py-0">CPF: ____________________</td><td className="border border-gray-400 px-1.5 py-0">RG: ____________________</td></tr>
+                <tr><td className="border border-gray-400 px-1.5 py-0" colSpan={2}>Endereço: ____________________________________________</td></tr>
+                <tr><td className="border border-gray-400 px-1.5 py-0">CEP: ____________</td><td className="border border-gray-400 px-1.5 py-0">Cidade/Estado: ____________</td></tr>
+                <tr><td className="border border-gray-400 px-1.5 py-0">Data Nasc.: ____________</td><td className="border border-gray-400 px-1.5 py-0">Fone: ____________</td></tr>
               </tbody>
             </table>
 
-            <p className="mt-1.5 leading-snug" style={{ fontSize: 13 }}>
+            <p className="mt-1 leading-tight" style={{ fontSize: 13.5 }}>
               DECLARO ter ciência de que é uma campanha de propaganda do “INSTITUTO MAÇÔNICO OUVIR”, com cunho de divulgação de seus serviços oferecidos, pela qual CONCORDO e AUTORIZO o uso de minha imagem, na divulgação da instituição, nas formas e por prazo INDETERMINADO.
             </p>
-            <p className="mt-1.5 leading-snug" style={{ fontSize: 13 }}>
+            <p className="mt-1 leading-tight" style={{ fontSize: 13.5 }}>
               Assim, nos termos acima e em razão da aludida participação, AUTORIZO o “INSTITUTO MAÇÔNICO OUVIR”, a utilizar minha imagem, nome, depoimento e voz, com ou sem sincronização, nos materiais de comunicação utilizado pelo “INSTITUTO MAÇÔNICO OUVIR”, para veiculação, armazenamento digital/eletrônico e divulgação na mídia em geral, escrita, falada, televisada ou eletrônica, de difusão e transmissão por qualquer meio de comunicação, dentre os quais citam, sem exclusão de qualquer outro aqui não previsto, televisão, rádio, jornal, revista, internet, rede de computador, redes sociais, e-mails, folders, flyers, home page, blog, ilustração de programa de computador, vídeo, obra multimídia, catálogos, seminários, eventos, relatório anual, press release, boletim informativo, folheto, cartão, podendo ainda usar a imagem para publicação em editorial educativo ou cultural, painel eletrônico, banner, faixas, outdoor, cartaz, display, mural, poster, encarte, mala direta, cartão postal. Material de identidade visual, materiais e meios de comunicação que o “INSTITUTO MAÇÔNICO OUVIR” deseje utilizar para divulgação ao público interno e/ou externo, com finalidade institucional e/ou publicitária.
             </p>
-            <p className="mt-1.5 leading-snug" style={{ fontSize: 13 }}>
+            <p className="mt-1 leading-tight" style={{ fontSize: 13.5 }}>
               Esta AUTORIZAÇÃO é concedida a título gratuito, para divulgação em todo o território nacional, por prazo indeterminado, a partir da data de aceite desta autorização, para uso nas mídias e canais de veiculação acima autorizados, sem qualquer restrição de inserções e quantidade das imagens que serão escolhidas a exclusivo critério do “INSTITUTO MAÇÔNICO OUVIR”.
             </p>
-            <p className="mt-1.5 leading-snug" style={{ fontSize: 13 }}>
+            <p className="mt-1 leading-tight" style={{ fontSize: 13.5 }}>
               A AUTORIZAÇÃO ora conferida abrange todos os direitos relacionados à veiculação da imagem, nome, voz, depoimento e opinião do LICENCIANTE podendo o “INSTITUTO MAÇÔNICO OUVIR”, ainda editar os materiais com os conteúdos autorizados, realizar dublagem e obras derivadas.
             </p>
-            <p className="mt-1.5 leading-snug" style={{ fontSize: 13 }}>
+            <p className="mt-1 leading-tight" style={{ fontSize: 13.5 }}>
               O “INSTITUTO MAÇÔNICO OUVIR”, estão isentos de qualquer responsabilidade decorrente do uso indevido das imagens captadas, especialmente em sites e comunidades virtuais, tais como You Tube, Facebook, Twitter, Instagram etc.
             </p>
 
-            <div className="mt-3 text-center imv-avoid-break" style={{ fontSize: 13.5 }}>
+            <div className="mt-2 text-center imv-avoid-break" style={{ fontSize: 15 }}>
               <p>{cidadeAssinatura}, {formatDateBR(dataHoje)}</p>
-              <p className="mt-5 border-t border-gray-400 pt-1 mx-auto w-64">Assinatura</p>
+              <p className="mt-3 border-t border-gray-400 mx-auto w-72">Assinatura</p>
             </div>
           </div>
     </>
