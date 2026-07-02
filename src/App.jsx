@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useRef, createContext, useContext, useEffect } from "react";
+import { createPortal } from "react-dom";
 import {
   LayoutDashboard, Users, CalendarDays, Package, MapPin, Boxes, Search, Plus, X,
   Phone, MessageCircle, Upload, FileText, Trash2, Pencil, Download, Printer,
@@ -1490,124 +1491,141 @@ function TermoLogo() {
   );
 }
 
+function TermoConteudo({ order, paciente, unidade, cidadeAssinatura, dataHoje }) {
+  return (
+    <>
+  <div className="imv-term-page rounded-xl p-6" style={{ background: "#fff", fontFamily: "Arial, Helvetica, sans-serif", color: "#111" }}>
+            <TermoLogo />
+            <h2 className="mt-3 text-center imv-t-16 font-extrabold">Termo de Recebimento</h2>
+            <p className="mt-1 text-center imv-t-115 font-semibold text-gray-500">PROJETO SAÚDE AUDITIVA – INSTITUTO MAÇÔNICO OUVIR - IMOUVIR</p>
+            <p className="mt-2 imv-t-125 leading-snug" style={{ fontSize: 11 }}>
+              Através deste termo confirmo o recebimento do(s) aparelho(s) auditivo(s) e respectiva nota fiscal descritos no quadro abaixo, bem como recebi as orientações e cuidados necessários para proteção e bom funcionamento do(s) aparelho(s).
+            </p>
+            <p className="mt-2 imv-t-125 font-bold text-center">{order.numero} - PCT {(paciente?.nome || "").toUpperCase()}</p>
+
+            <table className="mt-1.5 w-full border-collapse leading-tight" style={{ fontSize: 10.5 }}>
+              <tbody>
+                <tr><td className="border border-gray-400 px-2 py-0.5 font-semibold" colSpan={1}>NF {order.nf?.numero} DE {formatDateBR(order.nf?.data)}</td><td className="border border-gray-400 px-2 py-0.5">{order.nf?.fabricante}</td></tr>
+                {order.series.length > 0 ? order.series.map((s, i) => (
+                  <tr key={i}><td className="border border-gray-400 px-2 py-0.5">NS – {s.numeroSerie || "____________"}</td><td className="border border-gray-400 px-2 py-0.5">{s.nome}</td></tr>
+                )) : <tr><td className="border border-gray-400 px-2 py-0.5">NS – ____________</td><td className="border border-gray-400 px-2 py-0.5"></td></tr>}
+              </tbody>
+            </table>
+
+            <p className="mt-2 imv-t-11 font-bold uppercase leading-tight text-center">
+              Garantia do fabricante – 1 ano para defeitos de fabricação do aparelho, com exceção dos receptores, que possuem 3 meses de garantia — sujeito à análise e aprovação do laboratório da empresa.
+            </p>
+
+            <h3 className="mt-2 imv-t-13 font-extrabold">Cuidados a serem observados para preservação do Aparelho Auditivo</h3>
+            <ul className="mt-1.5 list-disc space-y-0.5 pl-5 leading-tight" style={{ fontSize: 10 }}>
+              <li>Proteja seu aparelho auditivo de sujeira. Certifique-se sempre que seus dedos estejam limpos e secos antes de tocar em seus aparelhos auditivos. A entrada do microfone é muito pequena e pode ser obstruída se for manipulada incorretamente.</li>
+              <li>Evite impactos. Evite derrubar seu aparelho auditivo sobre superfícies duras. Isto pode ocorrer enquanto você limpa ou troca a pilha. Seja cuidadoso ao inserir ou remover seu aparelho auditivo.</li>
+              <li>Não exponha seu aparelho auditivo a altas temperaturas. Não o exponha ao calor. Proteja-o da luz solar (em casa ou no carro) e não o deixe próximo a aquecedores.</li>
+              <li>Proteja seu aparelho auditivo de umidade. Remova-o antes de tomar banho ou nadar. Devido à umidade, não o deixe no banheiro. Recomendamos que você remova a pilha durante a noite e deixe seu compartimento aberto.</li>
+              <li>Mantenha seu aparelho auditivo fora do alcance de crianças e animais domésticos.</li>
+              <li>Evite o contato com fixadores para cabelo ou maquiagem. Remova seu aparelho auditivo antes de aplicar produtos corporais ou cosméticos.</li>
+              <li>Limpe cuidadosamente seu aparelho auditivo com um pano macio seco. Álcool, solventes ou produtos de limpeza podem danificá-lo.</li>
+              <li>Faça sempre a higiene adequada do seu ouvido, para que seus aparelhos auditivos ofereçam o melhor desempenho.</li>
+              <li>Guarde seus aparelhos auditivos em local seguro. Quando não estiver usando, remova as pilhas e guarde-os dentro do estojo com o desumidificador.</li>
+              <li>Só efetue reparos com especialistas. Chaves de fenda e óleo em contato com a parte elétrica ou micro-mecânica podem causar danos irreparáveis.</li>
+            </ul>
+
+            <div className="mt-3 text-center imv-t-12 imv-avoid-break">
+              <p>{cidadeAssinatura}, {formatDateBR(dataHoje)}</p>
+              <p className="mt-4 border-t border-gray-400 pt-1 mx-auto w-64">Assinatura</p>
+            </div>
+          </div>
+
+          <div className="imv-page-2 imv-term-page rounded-xl p-6" style={{ background: "#fff", fontFamily: "Arial, Helvetica, sans-serif", color: "#111" }}>
+            <TermoLogo />
+            <h2 className="mt-3 text-center imv-t-15 font-extrabold">TERMO DE RESPONSABILIDADE E AUTORIZAÇÃO<br />DE USO E DIREITOS DE IMAGEM INDIVIDUAL</h2>
+            <p className="mt-1 imv-t-105 leading-tight" style={{ fontSize: 10 }}>
+              Conforme assinatura abaixo, DECLARO que concordo, sem ressalvas, em participar de campanhas de divulgação do “INSTITUTO MAÇÔNICO OUVIR”, por livre e espontânea vontade, ora assumindo toda e qualquer RESPONSABILIDADE por minha participação.
+            </p>
+
+            <table className="mt-1.5 w-full border-collapse leading-none imv-avoid-break" style={{ fontSize: 10 }}>
+              <tbody>
+                <tr><td className="border border-gray-400 px-1.5 py-px font-semibold" colSpan={2}>Nome: {paciente?.nome}</td></tr>
+                <tr><td className="border border-gray-400 px-1.5 py-px">CPF: {paciente?.cpf || "____________"}</td><td className="border border-gray-400 px-1.5 py-px"></td></tr>
+                <tr><td className="border border-gray-400 px-1.5 py-px" colSpan={2}>Endereço: {paciente?.endereco || "____________"}</td></tr>
+                <tr><td className="border border-gray-400 px-1.5 py-px">CEP: ____________</td><td className="border border-gray-400 px-1.5 py-px">Cidade/Estado: {paciente?.cidade}/{paciente?.uf}</td></tr>
+                <tr><td className="border border-gray-400 px-1.5 py-px" colSpan={2}>Data Nasc.: {paciente?.dataNascimento ? formatDateBR(paciente.dataNascimento) : "____________"}</td></tr>
+                <tr><td className="border border-gray-400 bg-gray-100 px-1.5 py-px font-bold" colSpan={2}>DADOS DO RESPONSÁVEL (quando o paciente for menor de idade)</td></tr>
+                <tr><td className="border border-gray-400 px-1.5 py-px" colSpan={2}>Nome: ____________________________________________</td></tr>
+                <tr><td className="border border-gray-400 px-1.5 py-px">CPF: ____________________</td><td className="border border-gray-400 px-1.5 py-px">RG: ____________________</td></tr>
+                <tr><td className="border border-gray-400 px-1.5 py-px" colSpan={2}>Endereço: ____________________________________________</td></tr>
+                <tr><td className="border border-gray-400 px-1.5 py-px">CEP: ____________</td><td className="border border-gray-400 px-1.5 py-px">Cidade/Estado: ____________</td></tr>
+                <tr><td className="border border-gray-400 px-1.5 py-px">Data Nasc.: ____________</td><td className="border border-gray-400 px-1.5 py-px">Fone: ____________</td></tr>
+              </tbody>
+            </table>
+
+            <p className="mt-1 imv-t-105 leading-tight" style={{ fontSize: 10 }}>
+              DECLARO ter ciência de que é uma campanha de propaganda do “INSTITUTO MAÇÔNICO OUVIR”, com cunho de divulgação de seus serviços oferecidos, pela qual CONCORDO e AUTORIZO o uso de minha imagem, na divulgação da instituição, nas formas e por prazo INDETERMINADO.
+            </p>
+            <p className="mt-1 imv-t-105 leading-tight" style={{ fontSize: 10 }}>
+              Assim, nos termos acima e em razão da aludida participação, AUTORIZO o “INSTITUTO MAÇÔNICO OUVIR”, a utilizar minha imagem, nome, depoimento e voz, com ou sem sincronização, nos materiais de comunicação utilizado pelo “INSTITUTO MAÇÔNICO OUVIR”, para veiculação, armazenamento digital/eletrônico e divulgação na mídia em geral, escrita, falada, televisada ou eletrônica, de difusão e transmissão por qualquer meio de comunicação, dentre os quais citam, sem exclusão de qualquer outro aqui não previsto, televisão, rádio, jornal, revista, internet, rede de computador, redes sociais, e-mails, folders, flyers, home page, blog, ilustração de programa de computador, vídeo, obra multimídia, catálogos, seminários, eventos, relatório anual, press release, boletim informativo, folheto, cartão, podendo ainda usar a imagem para publicação em editorial educativo ou cultural, painel eletrônico, banner, faixas, outdoor, cartaz, display, mural, poster, encarte, mala direta, cartão postal. Material de identidade visual, materiais e meios de comunicação que o “INSTITUTO MAÇÔNICO OUVIR” deseje utilizar para divulgação ao público interno e/ou externo, com finalidade institucional e/ou publicitária.
+            </p>
+            <p className="mt-1 imv-t-105 leading-tight" style={{ fontSize: 10 }}>
+              Esta AUTORIZAÇÃO é concedida a título gratuito, para divulgação em todo o território nacional, por prazo indeterminado, a partir da data de aceite desta autorização, para uso nas mídias e canais de veiculação acima autorizados, sem qualquer restrição de inserções e quantidade das imagens que serão escolhidas a exclusivo critério do “INSTITUTO MAÇÔNICO OUVIR”.
+            </p>
+            <p className="mt-1 imv-t-105 leading-tight" style={{ fontSize: 10 }}>
+              A AUTORIZAÇÃO ora conferida abrange todos os direitos relacionados à veiculação da imagem, nome, voz, depoimento e opinião do LICENCIANTE podendo o “INSTITUTO MAÇÔNICO OUVIR”, ainda editar os materiais com os conteúdos autorizados, realizar dublagem e obras derivadas.
+            </p>
+            <p className="mt-1 imv-t-105 leading-tight" style={{ fontSize: 10 }}>
+              O “INSTITUTO MAÇÔNICO OUVIR”, estão isentos de qualquer responsabilidade decorrente do uso indevido das imagens captadas, especialmente em sites e comunidades virtuais, tais como You Tube, Facebook, Twitter, Instagram etc.
+            </p>
+
+            <div className="mt-3 text-center imv-t-12 imv-avoid-break">
+              <p>{cidadeAssinatura}, {formatDateBR(dataHoje)}</p>
+              <p className="mt-5 border-t border-gray-400 pt-1 mx-auto w-64">Assinatura</p>
+            </div>
+          </div>
+    </>
+  );
+}
+
 function TermsPrintModal({ order, paciente, unidade, onClose }) {
   const cidadeAssinatura = unidade?.cidade ? `${unidade.cidade}/${unidade.uf}` : "____________";
   const dataHoje = new Date();
+  const conteudo = <TermoConteudo order={order} paciente={paciente} unidade={unidade} cidadeAssinatura={cidadeAssinatura} dataHoje={dataHoje} />;
 
   return (
-    <div className="imv-print-overlay fixed inset-0 imv-z-60 overflow-y-auto py-6" style={{ background: "rgba(6,40,42,0.55)" }}>
-      <style>{`
-        @page { size: A4; margin: 10mm; }
-        @media print {
-          body * { visibility: hidden; }
-          #imv-print-area, #imv-print-area * { visibility: visible; }
-          .imv-print-overlay { position: static !important; overflow: visible !important; background: none !important; padding: 0 !important; height: auto !important; }
-          #imv-print-area { position: static !important; width: 100% !important; }
-          .imv-no-print { display: none !important; }
-          .imv-page-2 { page-break-before: always; }
-          .imv-avoid-break { page-break-inside: avoid; }
-          .imv-term-page { padding: 0 !important; }
-        }
-      `}</style>
-      <div className="mx-auto flex imv-maxw-820 flex-col gap-3 px-4">
-        <div className="imv-no-print flex items-center justify-between rounded-xl px-4 py-3" style={{ background: C.card }}>
-          <span className="imv-t-13 font-bold" style={{ color: C.ink }}>Prévia de impressão — Termo de Recebimento e Responsabilidade</span>
-          <div className="flex gap-2">
-            <Btn variant="ghost" size="sm" onClick={onClose}>Fechar</Btn>
-            <Btn size="sm" icon={Printer} onClick={() => window.print()}>Imprimir / Salvar PDF</Btn>
+    <>
+      <div className="imv-screen-only fixed inset-0 imv-z-60 overflow-y-auto py-6" style={{ background: "rgba(6,40,42,0.55)" }}>
+        <style>{`
+          @media print { .imv-screen-only { display: none !important; } }
+        `}</style>
+        <div className="mx-auto flex imv-maxw-820 flex-col gap-3 px-4">
+          <div className="flex items-center justify-between rounded-xl px-4 py-3" style={{ background: C.card }}>
+            <span className="imv-t-13 font-bold" style={{ color: C.ink }}>Prévia de impressão — Termo de Recebimento e Responsabilidade</span>
+            <div className="flex gap-2">
+              <Btn variant="ghost" size="sm" onClick={onClose}>Fechar</Btn>
+              <Btn size="sm" icon={Printer} onClick={() => window.print()}>Imprimir / Salvar PDF</Btn>
+            </div>
           </div>
-        </div>
-
-        <div id="imv-print-area" className="flex flex-col gap-3">
-        <div className="imv-term-page rounded-xl p-6" style={{ background: "#fff", fontFamily: "Arial, Helvetica, sans-serif", color: "#111" }}>
-          <TermoLogo />
-          <h2 className="mt-3 text-center imv-t-16 font-extrabold">Termo de Recebimento</h2>
-          <p className="mt-1 text-center imv-t-115 font-semibold text-gray-500">PROJETO SAÚDE AUDITIVA – INSTITUTO MAÇÔNICO OUVIR - IMOUVIR</p>
-          <p className="mt-2 imv-t-125 leading-snug" style={{ fontSize: 11 }}>
-            Através deste termo confirmo o recebimento do(s) aparelho(s) auditivo(s) e respectiva nota fiscal descritos no quadro abaixo, bem como recebi as orientações e cuidados necessários para proteção e bom funcionamento do(s) aparelho(s).
-          </p>
-          <p className="mt-2 imv-t-125 font-bold text-center">{order.numero} - PCT {(paciente?.nome || "").toUpperCase()}</p>
-
-          <table className="mt-1.5 w-full border-collapse leading-tight" style={{ fontSize: 10.5 }}>
-            <tbody>
-              <tr><td className="border border-gray-400 px-2 py-0.5 font-semibold" colSpan={1}>NF {order.nf?.numero} DE {formatDateBR(order.nf?.data)}</td><td className="border border-gray-400 px-2 py-0.5">{order.nf?.fabricante}</td></tr>
-              {order.series.length > 0 ? order.series.map((s, i) => (
-                <tr key={i}><td className="border border-gray-400 px-2 py-0.5">NS – {s.numeroSerie || "____________"}</td><td className="border border-gray-400 px-2 py-0.5">{s.nome}</td></tr>
-              )) : <tr><td className="border border-gray-400 px-2 py-0.5">NS – ____________</td><td className="border border-gray-400 px-2 py-0.5"></td></tr>}
-            </tbody>
-          </table>
-
-          <p className="mt-2 imv-t-11 font-bold uppercase leading-tight text-center">
-            Garantia do fabricante – 1 ano para defeitos de fabricação do aparelho, com exceção dos receptores, que possuem 3 meses de garantia — sujeito à análise e aprovação do laboratório da empresa.
-          </p>
-
-          <h3 className="mt-2 imv-t-13 font-extrabold">Cuidados a serem observados para preservação do Aparelho Auditivo</h3>
-          <ul className="mt-1.5 list-disc space-y-0.5 pl-5 leading-tight" style={{ fontSize: 10 }}>
-            <li>Proteja seu aparelho auditivo de sujeira. Certifique-se sempre que seus dedos estejam limpos e secos antes de tocar em seus aparelhos auditivos. A entrada do microfone é muito pequena e pode ser obstruída se for manipulada incorretamente.</li>
-            <li>Evite impactos. Evite derrubar seu aparelho auditivo sobre superfícies duras. Isto pode ocorrer enquanto você limpa ou troca a pilha. Seja cuidadoso ao inserir ou remover seu aparelho auditivo.</li>
-            <li>Não exponha seu aparelho auditivo a altas temperaturas. Não o exponha ao calor. Proteja-o da luz solar (em casa ou no carro) e não o deixe próximo a aquecedores.</li>
-            <li>Proteja seu aparelho auditivo de umidade. Remova-o antes de tomar banho ou nadar. Devido à umidade, não o deixe no banheiro. Recomendamos que você remova a pilha durante a noite e deixe seu compartimento aberto.</li>
-            <li>Mantenha seu aparelho auditivo fora do alcance de crianças e animais domésticos.</li>
-            <li>Evite o contato com fixadores para cabelo ou maquiagem. Remova seu aparelho auditivo antes de aplicar produtos corporais ou cosméticos.</li>
-            <li>Limpe cuidadosamente seu aparelho auditivo com um pano macio seco. Álcool, solventes ou produtos de limpeza podem danificá-lo.</li>
-            <li>Faça sempre a higiene adequada do seu ouvido, para que seus aparelhos auditivos ofereçam o melhor desempenho.</li>
-            <li>Guarde seus aparelhos auditivos em local seguro. Quando não estiver usando, remova as pilhas e guarde-os dentro do estojo com o desumidificador.</li>
-            <li>Só efetue reparos com especialistas. Chaves de fenda e óleo em contato com a parte elétrica ou micro-mecânica podem causar danos irreparáveis.</li>
-          </ul>
-
-          <div className="mt-3 text-center imv-t-12 imv-avoid-break">
-            <p>{cidadeAssinatura}, {formatDateBR(dataHoje)}</p>
-            <p className="mt-4 border-t border-gray-400 pt-1 mx-auto w-64">Assinatura</p>
+          <div className="flex flex-col gap-3">
+            {conteudo}
           </div>
-        </div>
-
-        <div className="imv-page-2 imv-term-page rounded-xl p-6" style={{ background: "#fff", fontFamily: "Arial, Helvetica, sans-serif", color: "#111" }}>
-          <TermoLogo />
-          <h2 className="mt-3 text-center imv-t-15 font-extrabold">TERMO DE RESPONSABILIDADE E AUTORIZAÇÃO<br />DE USO E DIREITOS DE IMAGEM INDIVIDUAL</h2>
-          <p className="mt-1 imv-t-105 leading-tight" style={{ fontSize: 10 }}>
-            Conforme assinatura abaixo, DECLARO que concordo, sem ressalvas, em participar de campanhas de divulgação do “INSTITUTO MAÇÔNICO OUVIR”, por livre e espontânea vontade, ora assumindo toda e qualquer RESPONSABILIDADE por minha participação.
-          </p>
-
-          <table className="mt-1.5 w-full border-collapse leading-none imv-avoid-break" style={{ fontSize: 10 }}>
-            <tbody>
-              <tr><td className="border border-gray-400 px-1.5 py-px font-semibold" colSpan={2}>Nome: {paciente?.nome}</td></tr>
-              <tr><td className="border border-gray-400 px-1.5 py-px">CPF: {paciente?.cpf || "____________"}</td><td className="border border-gray-400 px-1.5 py-px"></td></tr>
-              <tr><td className="border border-gray-400 px-1.5 py-px" colSpan={2}>Endereço: {paciente?.endereco || "____________"}</td></tr>
-              <tr><td className="border border-gray-400 px-1.5 py-px">CEP: ____________</td><td className="border border-gray-400 px-1.5 py-px">Cidade/Estado: {paciente?.cidade}/{paciente?.uf}</td></tr>
-              <tr><td className="border border-gray-400 px-1.5 py-px" colSpan={2}>Data Nasc.: {paciente?.dataNascimento ? formatDateBR(paciente.dataNascimento) : "____________"}</td></tr>
-              <tr><td className="border border-gray-400 bg-gray-100 px-1.5 py-px font-bold" colSpan={2}>DADOS DO RESPONSÁVEL (quando o paciente for menor de idade)</td></tr>
-              <tr><td className="border border-gray-400 px-1.5 py-px" colSpan={2}>Nome: ____________________________________________</td></tr>
-              <tr><td className="border border-gray-400 px-1.5 py-px">CPF: ____________________</td><td className="border border-gray-400 px-1.5 py-px">RG: ____________________</td></tr>
-              <tr><td className="border border-gray-400 px-1.5 py-px" colSpan={2}>Endereço: ____________________________________________</td></tr>
-              <tr><td className="border border-gray-400 px-1.5 py-px">CEP: ____________</td><td className="border border-gray-400 px-1.5 py-px">Cidade/Estado: ____________</td></tr>
-              <tr><td className="border border-gray-400 px-1.5 py-px">Data Nasc.: ____________</td><td className="border border-gray-400 px-1.5 py-px">Fone: ____________</td></tr>
-            </tbody>
-          </table>
-
-          <p className="mt-1 imv-t-105 leading-tight" style={{ fontSize: 10 }}>
-            DECLARO ter ciência de que é uma campanha de propaganda do “INSTITUTO MAÇÔNICO OUVIR”, com cunho de divulgação de seus serviços oferecidos, pela qual CONCORDO e AUTORIZO o uso de minha imagem, na divulgação da instituição, nas formas e por prazo INDETERMINADO.
-          </p>
-          <p className="mt-1 imv-t-105 leading-tight" style={{ fontSize: 10 }}>
-            Assim, nos termos acima e em razão da aludida participação, AUTORIZO o “INSTITUTO MAÇÔNICO OUVIR”, a utilizar minha imagem, nome, depoimento e voz, com ou sem sincronização, nos materiais de comunicação utilizado pelo “INSTITUTO MAÇÔNICO OUVIR”, para veiculação, armazenamento digital/eletrônico e divulgação na mídia em geral, escrita, falada, televisada ou eletrônica, de difusão e transmissão por qualquer meio de comunicação, dentre os quais citam, sem exclusão de qualquer outro aqui não previsto, televisão, rádio, jornal, revista, internet, rede de computador, redes sociais, e-mails, folders, flyers, home page, blog, ilustração de programa de computador, vídeo, obra multimídia, catálogos, seminários, eventos, relatório anual, press release, boletim informativo, folheto, cartão, podendo ainda usar a imagem para publicação em editorial educativo ou cultural, painel eletrônico, banner, faixas, outdoor, cartaz, display, mural, poster, encarte, mala direta, cartão postal. Material de identidade visual, materiais e meios de comunicação que o “INSTITUTO MAÇÔNICO OUVIR” deseje utilizar para divulgação ao público interno e/ou externo, com finalidade institucional e/ou publicitária.
-          </p>
-          <p className="mt-1 imv-t-105 leading-tight" style={{ fontSize: 10 }}>
-            Esta AUTORIZAÇÃO é concedida a título gratuito, para divulgação em todo o território nacional, por prazo indeterminado, a partir da data de aceite desta autorização, para uso nas mídias e canais de veiculação acima autorizados, sem qualquer restrição de inserções e quantidade das imagens que serão escolhidas a exclusivo critério do “INSTITUTO MAÇÔNICO OUVIR”.
-          </p>
-          <p className="mt-1 imv-t-105 leading-tight" style={{ fontSize: 10 }}>
-            A AUTORIZAÇÃO ora conferida abrange todos os direitos relacionados à veiculação da imagem, nome, voz, depoimento e opinião do LICENCIANTE podendo o “INSTITUTO MAÇÔNICO OUVIR”, ainda editar os materiais com os conteúdos autorizados, realizar dublagem e obras derivadas.
-          </p>
-          <p className="mt-1 imv-t-105 leading-tight" style={{ fontSize: 10 }}>
-            O “INSTITUTO MAÇÔNICO OUVIR”, estão isentos de qualquer responsabilidade decorrente do uso indevido das imagens captadas, especialmente em sites e comunidades virtuais, tais como You Tube, Facebook, Twitter, Instagram etc.
-          </p>
-
-          <div className="mt-3 text-center imv-t-12 imv-avoid-break">
-            <p>{cidadeAssinatura}, {formatDateBR(dataHoje)}</p>
-            <p className="mt-5 border-t border-gray-400 pt-1 mx-auto w-64">Assinatura</p>
-          </div>
-        </div>
         </div>
       </div>
-    </div>
+      {createPortal(
+        <div id="imv-print-portal">
+          <style>{`
+            @page { size: A4; margin: 10mm; }
+            #imv-print-portal { display: none; }
+            @media print {
+              #root { display: none !important; }
+              #imv-print-portal { display: block; }
+              .imv-page-2 { page-break-before: always; }
+              .imv-avoid-break { page-break-inside: avoid; }
+              .imv-term-page { padding: 0 !important; }
+            }
+          `}</style>
+          {conteudo}
+        </div>,
+        document.body
+      )}
+    </>
   );
 }
 
