@@ -17,6 +17,7 @@ import Login from "./auth/Login.jsx";
 import { isSupabaseConfigured } from "./lib/supabaseClient.js";
 import * as api from "./data/api.js";
 import { exportPedidoXlsx } from "./lib/exportPedidoXlsx.js";
+import imouvirLogo from "./assets/imouvir-logo.png";
 
 /* =========================================================================
    IMOUVIR · CRM — Design tokens
@@ -1265,16 +1266,17 @@ function ItemsTable({ itens, setItens, bonificacao }) {
   );
 }
 
-function OrderFormModal({ onClose }) {
-  const { patients, units, orders, createOrderFn, updatePatientFieldsFn, addPatientHistoricoFn } = useCRM();
-  const [pacienteId, setPacienteId] = useState(patients[0]?.id || "");
-  const [unidadeId, setUnidadeId] = useState(units[0]?.id || "");
-  const [enderecoCustom, setEnderecoCustom] = useState("");
-  const [usarEnderecoCustom, setUsarEnderecoCustom] = useState(false);
-  const [condicaoPagamento, setCondicaoPagamento] = useState(CONDICOES_PAGAMENTO[2].codigo);
-  const [fonoaudiologo, setFonoaudiologo] = useState("");
-  const [itens, setItens] = useState([]);
-  const [bonificacao, setBonificacao] = useState([]);
+function OrderFormModal({ order: editingOrder, onClose }) {
+  const isEdit = Boolean(editingOrder);
+  const { patients, units, orders, createOrderFn, updateOrderFn, updatePatientFieldsFn, addPatientHistoricoFn } = useCRM();
+  const [pacienteId, setPacienteId] = useState(editingOrder?.pacienteId || patients[0]?.id || "");
+  const [unidadeId, setUnidadeId] = useState(editingOrder?.unidadeId || units[0]?.id || "");
+  const [enderecoCustom, setEnderecoCustom] = useState(editingOrder?.enderecoEntregaCustom || "");
+  const [usarEnderecoCustom, setUsarEnderecoCustom] = useState(Boolean(editingOrder?.enderecoEntregaCustom));
+  const [condicaoPagamento, setCondicaoPagamento] = useState(editingOrder?.condicaoPagamento || CONDICOES_PAGAMENTO[2].codigo);
+  const [fonoaudiologo, setFonoaudiologo] = useState(editingOrder?.fonoaudiologo || "");
+  const [itens, setItens] = useState(() => (editingOrder?.itens || []).map((i) => ({ ...i })));
+  const [bonificacao, setBonificacao] = useState(() => (editingOrder?.bonificacao || []).map((i) => ({ ...i })));
   const [saving, setSaving] = useState(false);
 
   const paciente = patients.find((p) => p.id === pacienteId);
@@ -1294,25 +1296,29 @@ function OrderFormModal({ onClose }) {
   const salvar = async () => {
     if (!pacienteId || itens.length === 0) return;
     setSaving(true);
-    const ano = String(new Date().getFullYear()).slice(-2);
-    const seq = 660 + orders.length + 1;
-    const numero = `${seq}.${unidade?.codigo || "00"}.${ano}`;
-    const novoPedido = await createOrderFn({
-      numero, idFabrica: String(900000 + orders.length + 1),
+    const dadosPedido = {
       pacienteId, unidadeId, enderecoEntregaCustom: usarEnderecoCustom ? enderecoCustom : "",
       condicaoPagamento, fonoaudiologo: fonoaudiologo || paciente?.fonoaudiologo || "",
-      itens: sanitizeItens(itens), bonificacao: sanitizeItens(bonificacao), status: "Aguardando Faturamento",
-    });
-    await updatePatientFieldsFn(pacienteId, { status: "Pedido em Andamento" });
-    await addPatientHistoricoFn(pacienteId, `Pedido ${numero} criado e enviado para faturamento.`);
-    await exportPedidoXlsx({ order: novoPedido, paciente, unidade });
+      itens: sanitizeItens(itens), bonificacao: sanitizeItens(bonificacao),
+    };
+    if (isEdit) {
+      await updateOrderFn(editingOrder.id, dadosPedido);
+    } else {
+      const ano = String(new Date().getFullYear()).slice(-2);
+      const seq = 660 + orders.length + 1;
+      const numero = `${seq}.${unidade?.codigo || "00"}.${ano}`;
+      const novoPedido = await createOrderFn({ ...dadosPedido, numero, idFabrica: String(900000 + orders.length + 1), status: "Aguardando Faturamento" });
+      await updatePatientFieldsFn(pacienteId, { status: "Pedido em Andamento" });
+      await addPatientHistoricoFn(pacienteId, `Pedido ${numero} criado e enviado para faturamento.`);
+      await exportPedidoXlsx({ order: novoPedido, paciente, unidade });
+    }
     setSaving(false);
     onClose();
   };
 
   return (
-    <Modal open onClose={onClose} title="Novo pedido de aparelho" subtitle="Selecione o paciente, defina o endereço de entrega e monte os itens do pedido e da bonificação." width={720}
-      footer={<><Btn variant="ghost" onClick={onClose}>Cancelar</Btn><Btn icon={Save} onClick={salvar} disabled={!pacienteId || itens.length === 0 || saving}>{saving ? "Criando…" : "Criar pedido e exportar"}</Btn></>}>
+    <Modal open onClose={onClose} title={isEdit ? `Editar pedido ${editingOrder.numero}` : "Novo pedido de aparelho"} subtitle="Selecione o paciente, defina o endereço de entrega e monte os itens do pedido e da bonificação." width={720}
+      footer={<><Btn variant="ghost" onClick={onClose}>Cancelar</Btn><Btn icon={Save} onClick={salvar} disabled={!pacienteId || itens.length === 0 || saving}>{saving ? "Salvando…" : isEdit ? "Salvar alterações" : "Criar pedido e exportar"}</Btn></>}>
       <div className="flex flex-col gap-5">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label="Paciente" required><Select value={pacienteId} onChange={(e) => setPacienteId(e.target.value)}>{patients.map((p) => <option key={p.id} value={p.id}>{p.nome}</option>)}</Select></Field>
@@ -1352,6 +1358,7 @@ function OrderDetailModal({ order: orderProp, onClose }) {
   const { patients, units, orders, updateOrderStatusFn, addPatientHistoricoFn, updatePatientFieldsFn } = useCRM();
   const [showBilling, setShowBilling] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
+  const [showEdit, setShowEdit] = useState(false);
   const order = orders.find((o) => o.id === orderProp.id) || orderProp;
   const paciente = patients.find((p) => p.id === order.pacienteId);
   const unidade = units.find((u) => u.id === order.unidadeId);
@@ -1375,6 +1382,7 @@ function OrderDetailModal({ order: orderProp, onClose }) {
               {STATUS_PEDIDO.map((s, i) => <span key={s} className="h-1.5 w-6 rounded-full" style={{ background: i <= idx ? C.teal : C.border }} />)}
             </div>
             <div className="flex flex-wrap gap-2">
+              <Btn variant="subtle" icon={Pencil} onClick={() => setShowEdit(true)}>Editar</Btn>
               <Btn variant="subtle" icon={Download} onClick={() => exportPedidoXlsx({ order, paciente, unidade })}>Exportar XLSX</Btn>
               {order.status === "Aguardando Faturamento" && <Btn icon={FileCheck2} onClick={() => setShowBilling(true)}>Registrar faturamento</Btn>}
               {order.status === "Faturado" && <Btn icon={Truck} onClick={() => avancarStatus("Enviado")}>Marcar como enviado</Btn>}
@@ -1410,6 +1418,7 @@ function OrderDetailModal({ order: orderProp, onClose }) {
       </Modal>
       {showBilling && <BillingModal order={order} onClose={() => setShowBilling(false)} onDone={() => { setShowBilling(false); }} />}
       {showTerms && <TermsPrintModal order={order} paciente={paciente} unidade={unidade} onClose={() => setShowTerms(false)} />}
+      {showEdit && <OrderFormModal order={order} onClose={() => setShowEdit(false)} />}
     </>
   );
 }
@@ -1473,18 +1482,29 @@ function BillingModal({ order, onClose, onDone }) {
    fiel ao modelo real utilizado pela IMOUVIR (gera PDF via impressão do navegador).
    Em produção, o mesmo conteúdo será preenchido automaticamente em .docx via
    python-docx a partir deste mesmo template. */
+function TermoLogo() {
+  return (
+    <div className="flex justify-center">
+      <img src={imouvirLogo} alt="IMOUVIR" style={{ height: 42, objectFit: "contain" }} />
+    </div>
+  );
+}
+
 function TermsPrintModal({ order, paciente, unidade, onClose }) {
   const cidadeAssinatura = unidade?.cidade ? `${unidade.cidade}/${unidade.uf}` : "____________";
   const dataHoje = new Date();
 
   return (
-    <div className="fixed inset-0 imv-z-60 overflow-y-auto py-6" style={{ background: "rgba(6,40,42,0.55)" }}>
+    <div className="imv-print-overlay fixed inset-0 imv-z-60 overflow-y-auto py-6" style={{ background: "rgba(6,40,42,0.55)" }}>
       <style>{`
         @media print {
           body * { visibility: hidden; }
           #imv-print-area, #imv-print-area * { visibility: visible; }
-          #imv-print-area { position: absolute; left: 0; top: 0; width: 100%; }
+          .imv-print-overlay { position: static !important; overflow: visible !important; background: none !important; padding: 0 !important; height: auto !important; }
+          #imv-print-area { position: static !important; width: 100% !important; }
           .imv-no-print { display: none !important; }
+          .imv-page-2 { page-break-before: always; }
+          .imv-avoid-break { page-break-inside: avoid; }
         }
       `}</style>
       <div className="mx-auto flex imv-maxw-820 flex-col gap-3 px-4">
@@ -1496,71 +1516,93 @@ function TermsPrintModal({ order, paciente, unidade, onClose }) {
           </div>
         </div>
 
-        <div id="imv-print-area" className="rounded-xl p-10" style={{ background: "#fff", fontFamily: "Inter, sans-serif", color: "#111" }}>
-          <h2 className="text-center imv-t-16 font-extrabold">Termo de Recebimento</h2>
+        <div id="imv-print-area" className="flex flex-col gap-3">
+        <div className="rounded-xl p-7" style={{ background: "#fff", fontFamily: "Inter, sans-serif", color: "#111" }}>
+          <TermoLogo />
+          <h2 className="mt-3 text-center imv-t-16 font-extrabold">Termo de Recebimento</h2>
           <p className="mt-1 text-center imv-t-115 font-semibold text-gray-500">PROJETO SAÚDE AUDITIVA – INSTITUTO MAÇÔNICO OUVIR - IMOUVIR</p>
-          <p className="mt-4 imv-t-125 leading-relaxed">
+          <p className="mt-3 imv-t-125 leading-snug">
             Através deste termo confirmo o recebimento do(s) aparelho(s) auditivo(s) e respectiva nota fiscal descritos no quadro abaixo, bem como recebi as orientações e cuidados necessários para proteção e bom funcionamento do(s) aparelho(s).
           </p>
-          <p className="mt-3 imv-t-125 font-bold">{order.numero} - PCT {(paciente?.nome || "").toUpperCase()}</p>
+          <p className="mt-3 imv-t-125 font-bold text-center">{order.numero} - PCT {(paciente?.nome || "").toUpperCase()}</p>
 
           <table className="mt-2 w-full border-collapse imv-t-12">
             <tbody>
-              <tr><td className="border border-gray-400 px-2 py-1 font-semibold" colSpan={1}>NF {order.nf?.numero} DE {formatDateBR(order.nf?.data)}</td><td className="border border-gray-400 px-2 py-1">{order.nf?.fabricante}</td></tr>
+              <tr><td className="border border-gray-400 px-2 py-0.5 font-semibold" colSpan={1}>NF {order.nf?.numero} DE {formatDateBR(order.nf?.data)}</td><td className="border border-gray-400 px-2 py-0.5">{order.nf?.fabricante}</td></tr>
               {order.series.length > 0 ? order.series.map((s, i) => (
-                <tr key={i}><td className="border border-gray-400 px-2 py-1">NS – {s.numeroSerie || "____________"}</td><td className="border border-gray-400 px-2 py-1">{s.nome}</td></tr>
-              )) : <tr><td className="border border-gray-400 px-2 py-1">NS – ____________</td><td className="border border-gray-400 px-2 py-1"></td></tr>}
+                <tr key={i}><td className="border border-gray-400 px-2 py-0.5">NS – {s.numeroSerie || "____________"}</td><td className="border border-gray-400 px-2 py-0.5">{s.nome}</td></tr>
+              )) : <tr><td className="border border-gray-400 px-2 py-0.5">NS – ____________</td><td className="border border-gray-400 px-2 py-0.5"></td></tr>}
             </tbody>
           </table>
 
-          <p className="mt-3 imv-t-11 font-bold uppercase leading-relaxed">
+          <p className="mt-3 imv-t-11 font-bold uppercase leading-relaxed text-center">
             Garantia do fabricante – 1 ano para defeitos de fabricação do aparelho, com exceção dos receptores, que possuem 3 meses de garantia — sujeito à análise e aprovação do laboratório da empresa.
           </p>
 
-          <h3 className="mt-4 imv-t-13 font-extrabold">Cuidados a serem observados para preservação do Aparelho Auditivo</h3>
-          <ul className="mt-2 list-disc space-y-1.5 pl-5 imv-t-115 leading-relaxed">
-            <li>Proteja seu aparelho auditivo de sujeira. Mantenha os dedos limpos e secos antes de manusear os aparelhos — a entrada do microfone é pequena e pode obstruir facilmente.</li>
-            <li>Evite impactos e quedas sobre superfícies duras, especialmente durante a limpeza ou troca de pilha.</li>
-            <li>Não exponha o aparelho a altas temperaturas, luz solar direta ou proximidade de aquecedores.</li>
-            <li>Proteja da umidade: remova antes do banho ou natação, evite deixá-lo no banheiro e retire a pilha à noite, deixando o compartimento aberto.</li>
-            <li>Mantenha fora do alcance de crianças e animais domésticos.</li>
-            <li>Evite contato com fixadores de cabelo ou maquiagem — remova o aparelho antes de aplicar esses produtos.</li>
-            <li>Limpe apenas com pano macio e seco; nunca use álcool, solventes ou produtos de limpeza.</li>
-            <li>Mantenha a higiene do ouvido em dia para o melhor desempenho do aparelho.</li>
-            <li>Guarde em local seguro, sem pilha, dentro do estojo com desumidificador quando não estiver em uso.</li>
-            <li>Reparos somente com especialistas autorizados — nunca abra o aparelho por conta própria.</li>
+          <h3 className="mt-3 imv-t-13 font-extrabold">Cuidados a serem observados para preservação do Aparelho Auditivo</h3>
+          <ul className="mt-2 list-disc space-y-1 pl-5 imv-t-105 leading-snug">
+            <li>Proteja seu aparelho auditivo de sujeira. Certifique-se sempre que seus dedos estejam limpos e secos antes de tocar em seus aparelhos auditivos. A entrada do microfone é muito pequena e pode ser obstruída se for manipulada incorretamente.</li>
+            <li>Evite impactos. Evite derrubar seu aparelho auditivo sobre superfícies duras. Isto pode ocorrer enquanto você limpa ou troca a pilha. Seja cuidadoso ao inserir ou remover seu aparelho auditivo.</li>
+            <li>Não exponha seu aparelho auditivo a altas temperaturas. Não o exponha ao calor. Proteja-o da luz solar (em casa ou no carro) e não o deixe próximo a aquecedores.</li>
+            <li>Proteja seu aparelho auditivo de umidade. Remova-o antes de tomar banho ou nadar. Devido à umidade, não o deixe no banheiro. Recomendamos que você remova a pilha durante a noite e deixe seu compartimento aberto.</li>
+            <li>Mantenha seu aparelho auditivo fora do alcance de crianças e animais domésticos.</li>
+            <li>Evite o contato com fixadores para cabelo ou maquiagem. Remova seu aparelho auditivo antes de aplicar produtos corporais ou cosméticos.</li>
+            <li>Limpe cuidadosamente seu aparelho auditivo com um pano macio seco. Álcool, solventes ou produtos de limpeza podem danificá-lo.</li>
+            <li>Faça sempre a higiene adequada do seu ouvido, para que seus aparelhos auditivos ofereçam o melhor desempenho.</li>
+            <li>Guarde seus aparelhos auditivos em local seguro. Quando não estiver usando, remova as pilhas e guarde-os dentro do estojo com o desumidificador.</li>
+            <li>Só efetue reparos com especialistas. Chaves de fenda e óleo em contato com a parte elétrica ou micro-mecânica podem causar danos irreparáveis.</li>
           </ul>
 
-          <div className="mt-10 text-center imv-t-12">
+          <div className="mt-5 text-center imv-t-12 imv-avoid-break">
             <p>{cidadeAssinatura}, {formatDateBR(dataHoje)}</p>
-            <p className="mt-8 border-t border-gray-400 pt-1 mx-auto w-64">Assinatura</p>
+            <p className="mt-6 border-t border-gray-400 pt-1 mx-auto w-64">Assinatura</p>
           </div>
+        </div>
 
-          <div className="my-10 border-t-2 border-dashed border-gray-300" />
-
-          <h2 className="text-center imv-t-15 font-extrabold">TERMO DE RESPONSABILIDADE E AUTORIZAÇÃO<br />DE USO E DIREITOS DE IMAGEM INDIVIDUAL</h2>
-          <p className="mt-3 imv-t-12 leading-relaxed">
-            Conforme assinatura abaixo, declaro que concordo, sem ressalvas, em participar de campanhas de divulgação do "Instituto Maçônico Ouvir", por livre e espontânea vontade, assumindo toda e qualquer responsabilidade por minha participação.
+        <div className="imv-page-2 rounded-xl p-6" style={{ background: "#fff", fontFamily: "Inter, sans-serif", color: "#111" }}>
+          <TermoLogo />
+          <h2 className="mt-3 text-center imv-t-15 font-extrabold">TERMO DE RESPONSABILIDADE E AUTORIZAÇÃO<br />DE USO E DIREITOS DE IMAGEM INDIVIDUAL</h2>
+          <p className="mt-1 imv-t-105 leading-tight" style={{ fontSize: 10 }}>
+            Conforme assinatura abaixo, DECLARO que concordo, sem ressalvas, em participar de campanhas de divulgação do “INSTITUTO MAÇÔNICO OUVIR”, por livre e espontânea vontade, ora assumindo toda e qualquer RESPONSABILIDADE por minha participação.
           </p>
 
-          <table className="mt-3 w-full border-collapse imv-t-12">
+          <table className="mt-1.5 w-full border-collapse leading-none imv-avoid-break" style={{ fontSize: 10 }}>
             <tbody>
-              <tr><td className="border border-gray-400 px-2 py-1 font-semibold" colSpan={2}>Nome: {paciente?.nome}</td></tr>
-              <tr><td className="border border-gray-400 px-2 py-1">CPF: {paciente?.cpf || "____________"}</td><td className="border border-gray-400 px-2 py-1"></td></tr>
-              <tr><td className="border border-gray-400 px-2 py-1" colSpan={2}>Endereço: {paciente?.endereco || "____________"}</td></tr>
-              <tr><td className="border border-gray-400 px-2 py-1">CEP: ____________</td><td className="border border-gray-400 px-2 py-1">Cidade/Estado: {paciente?.cidade}/{paciente?.uf}</td></tr>
-              <tr><td className="border border-gray-400 px-2 py-1">Data Nasc.: {paciente?.dataNascimento ? formatDateBR(paciente.dataNascimento) : "____________"}</td><td className="border border-gray-400 px-2 py-1"></td></tr>
+              <tr><td className="border border-gray-400 px-1.5 py-px font-semibold" colSpan={2}>Nome: {paciente?.nome}</td></tr>
+              <tr><td className="border border-gray-400 px-1.5 py-px">CPF: {paciente?.cpf || "____________"}</td><td className="border border-gray-400 px-1.5 py-px"></td></tr>
+              <tr><td className="border border-gray-400 px-1.5 py-px" colSpan={2}>Endereço: {paciente?.endereco || "____________"}</td></tr>
+              <tr><td className="border border-gray-400 px-1.5 py-px">CEP: ____________</td><td className="border border-gray-400 px-1.5 py-px">Cidade/Estado: {paciente?.cidade}/{paciente?.uf}</td></tr>
+              <tr><td className="border border-gray-400 px-1.5 py-px" colSpan={2}>Data Nasc.: {paciente?.dataNascimento ? formatDateBR(paciente.dataNascimento) : "____________"}</td></tr>
+              <tr><td className="border border-gray-400 bg-gray-100 px-1.5 py-px font-bold" colSpan={2}>DADOS DO RESPONSÁVEL (quando o paciente for menor de idade)</td></tr>
+              <tr><td className="border border-gray-400 px-1.5 py-px" colSpan={2}>Nome: ____________________________________________</td></tr>
+              <tr><td className="border border-gray-400 px-1.5 py-px">CPF: ____________________</td><td className="border border-gray-400 px-1.5 py-px">RG: ____________________</td></tr>
+              <tr><td className="border border-gray-400 px-1.5 py-px" colSpan={2}>Endereço: ____________________________________________</td></tr>
+              <tr><td className="border border-gray-400 px-1.5 py-px">CEP: ____________</td><td className="border border-gray-400 px-1.5 py-px">Cidade/Estado: ____________</td></tr>
+              <tr><td className="border border-gray-400 px-1.5 py-px">Data Nasc.: ____________</td><td className="border border-gray-400 px-1.5 py-px">Fone: ____________</td></tr>
             </tbody>
           </table>
 
-          <p className="mt-3 imv-t-11 leading-relaxed text-gray-700">
-            Declaro ter ciência de que se trata de uma campanha de propaganda do "Instituto Maçônico Ouvir", com finalidade de divulgação de seus serviços, pela qual concordo e autorizo o uso de minha imagem, na divulgação da instituição, por prazo indeterminado, nas formas e meios de comunicação de praxe (impressos, digitais, redes sociais e demais mídias), a título gratuito, em todo o território nacional.
+          <p className="mt-1 imv-t-105 leading-tight" style={{ fontSize: 10 }}>
+            DECLARO ter ciência de que é uma campanha de propaganda do “INSTITUTO MAÇÔNICO OUVIR”, com cunho de divulgação de seus serviços oferecidos, pela qual CONCORDO e AUTORIZO o uso de minha imagem, na divulgação da instituição, nas formas e por prazo INDETERMINADO.
+          </p>
+          <p className="mt-1 imv-t-105 leading-tight" style={{ fontSize: 10 }}>
+            Assim, nos termos acima e em razão da aludida participação, AUTORIZO o “INSTITUTO MAÇÔNICO OUVIR”, a utilizar minha imagem, nome, depoimento e voz, com ou sem sincronização, nos materiais de comunicação utilizado pelo “INSTITUTO MAÇÔNICO OUVIR”, para veiculação, armazenamento digital/eletrônico e divulgação na mídia em geral, escrita, falada, televisada ou eletrônica, de difusão e transmissão por qualquer meio de comunicação, dentre os quais citam, sem exclusão de qualquer outro aqui não previsto, televisão, rádio, jornal, revista, internet, rede de computador, redes sociais, e-mails, folders, flyers, home page, blog, ilustração de programa de computador, vídeo, obra multimídia, catálogos, seminários, eventos, relatório anual, press release, boletim informativo, folheto, cartão, podendo ainda usar a imagem para publicação em editorial educativo ou cultural, painel eletrônico, banner, faixas, outdoor, cartaz, display, mural, poster, encarte, mala direta, cartão postal. Material de identidade visual, materiais e meios de comunicação que o “INSTITUTO MAÇÔNICO OUVIR” deseje utilizar para divulgação ao público interno e/ou externo, com finalidade institucional e/ou publicitária.
+          </p>
+          <p className="mt-1 imv-t-105 leading-tight" style={{ fontSize: 10 }}>
+            Esta AUTORIZAÇÃO é concedida a título gratuito, para divulgação em todo o território nacional, por prazo indeterminado, a partir da data de aceite desta autorização, para uso nas mídias e canais de veiculação acima autorizados, sem qualquer restrição de inserções e quantidade das imagens que serão escolhidas a exclusivo critério do “INSTITUTO MAÇÔNICO OUVIR”.
+          </p>
+          <p className="mt-1 imv-t-105 leading-tight" style={{ fontSize: 10 }}>
+            A AUTORIZAÇÃO ora conferida abrange todos os direitos relacionados à veiculação da imagem, nome, voz, depoimento e opinião do LICENCIANTE podendo o “INSTITUTO MAÇÔNICO OUVIR”, ainda editar os materiais com os conteúdos autorizados, realizar dublagem e obras derivadas.
+          </p>
+          <p className="mt-1 imv-t-105 leading-tight" style={{ fontSize: 10 }}>
+            O “INSTITUTO MAÇÔNICO OUVIR”, estão isentos de qualquer responsabilidade decorrente do uso indevido das imagens captadas, especialmente em sites e comunidades virtuais, tais como You Tube, Facebook, Twitter, Instagram etc.
           </p>
 
-          <div className="mt-10 text-center imv-t-12">
+          <div className="mt-3 text-center imv-t-12 imv-avoid-break">
             <p>{cidadeAssinatura}, {formatDateBR(dataHoje)}</p>
-            <p className="mt-8 border-t border-gray-400 pt-1 mx-auto w-64">Assinatura</p>
+            <p className="mt-5 border-t border-gray-400 pt-1 mx-auto w-64">Assinatura</p>
           </div>
+        </div>
         </div>
       </div>
     </div>
@@ -1874,6 +1916,15 @@ function CrmApp() {
     setOrders((prev) => [novo, ...prev]);
     return novo;
   };
+  const updateOrderFn = async (id, order) => {
+    const { itens, bonificacao } = await api.updateOrder(id, order);
+    setOrders((prev) => prev.map((o) => (o.id === id ? {
+      ...o,
+      pacienteId: order.pacienteId, unidadeId: order.unidadeId,
+      enderecoEntregaCustom: order.enderecoEntregaCustom || "", condicaoPagamento: order.condicaoPagamento,
+      fonoaudiologo: order.fonoaudiologo || "", itens, bonificacao,
+    } : o)));
+  };
   const updateOrderStatusFn = async (id, status) => {
     await api.updateOrderStatus(id, status);
     setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, status } : o)));
@@ -1893,7 +1944,7 @@ function CrmApp() {
     createAppointmentFn, updateAppointmentFn, deleteAppointmentFn,
     createCatalogItemFn, updateCatalogItemFn, deleteCatalogItemFn,
     createUnitFn, updateUnitFn, deleteUnitFn,
-    createOrderFn, updateOrderStatusFn, setOrderBillingFn, deleteOrderFn,
+    createOrderFn, updateOrderFn, updateOrderStatusFn, setOrderBillingFn, deleteOrderFn,
   };
 
   const meta = PAGE_META[page];
@@ -1937,3 +1988,4 @@ function CrmApp() {
     </CRM.Provider>
   );
 }
+
