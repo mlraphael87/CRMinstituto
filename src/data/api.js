@@ -343,6 +343,34 @@ export async function createOrder(order) {
   return fromOrderRow({ ...pedido, pedido_itens: itemRows.map((r, i) => ({ ...r, id: `tmp-${i}` })), pedido_series: [] });
 }
 
+export async function updateOrder(id, order) {
+  const { error } = await supabase
+    .from("pedidos")
+    .update({
+      paciente_id: order.pacienteId,
+      unidade_id: order.unidadeId,
+      endereco_entrega_custom: order.enderecoEntregaCustom || "",
+      condicao_pagamento: order.condicaoPagamento,
+      fonoaudiologo: order.fonoaudiologo || "",
+    })
+    .eq("id", id);
+  if (error) throw error;
+
+  const { error: deleteError } = await supabase.from("pedido_itens").delete().eq("pedido_id", id);
+  if (deleteError) throw deleteError;
+
+  const itemRows = [
+    ...order.itens.map((i) => ({ pedido_id: id, catalogo_id: i.catalogoId, nome: i.nome, codigo: i.codigo, quantidade: i.quantidade, preco_unitario: i.precoUnitario, bonificacao: false })),
+    ...order.bonificacao.map((i) => ({ pedido_id: id, catalogo_id: i.catalogoId, nome: i.nome, codigo: i.codigo, quantidade: i.quantidade, preco_unitario: i.precoUnitario, bonificacao: true })),
+  ];
+  if (itemRows.length) {
+    const { error: itemsError } = await supabase.from("pedido_itens").insert(itemRows);
+    if (itemsError) throw itemsError;
+  }
+
+  return { itens: order.itens, bonificacao: order.bonificacao };
+}
+
 export async function updateOrderStatus(id, status) {
   const { error } = await supabase.from("pedidos").update({ status }).eq("id", id);
   if (error) throw error;
