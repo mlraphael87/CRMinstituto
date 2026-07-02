@@ -16,6 +16,7 @@ import { AuthProvider, useAuth } from "./auth/AuthProvider.jsx";
 import Login from "./auth/Login.jsx";
 import { isSupabaseConfigured } from "./lib/supabaseClient.js";
 import * as api from "./data/api.js";
+import { exportPedidoXlsx } from "./lib/exportPedidoXlsx.js";
 
 /* =========================================================================
    IMOUVIR · CRM — Design tokens
@@ -1296,7 +1297,7 @@ function OrderFormModal({ onClose }) {
     const ano = String(new Date().getFullYear()).slice(-2);
     const seq = 660 + orders.length + 1;
     const numero = `${seq}.${unidade?.codigo || "00"}.${ano}`;
-    await createOrderFn({
+    const novoPedido = await createOrderFn({
       numero, idFabrica: String(900000 + orders.length + 1),
       pacienteId, unidadeId, enderecoEntregaCustom: usarEnderecoCustom ? enderecoCustom : "",
       condicaoPagamento, fonoaudiologo: fonoaudiologo || paciente?.fonoaudiologo || "",
@@ -1304,13 +1305,14 @@ function OrderFormModal({ onClose }) {
     });
     await updatePatientFieldsFn(pacienteId, { status: "Pedido em Andamento" });
     await addPatientHistoricoFn(pacienteId, `Pedido ${numero} criado e enviado para faturamento.`);
+    await exportPedidoXlsx({ order: novoPedido, paciente, unidade });
     setSaving(false);
     onClose();
   };
 
   return (
     <Modal open onClose={onClose} title="Novo pedido de aparelho" subtitle="Selecione o paciente, defina o endereço de entrega e monte os itens do pedido e da bonificação." width={720}
-      footer={<><Btn variant="ghost" onClick={onClose}>Cancelar</Btn><Btn icon={Save} onClick={salvar} disabled={!pacienteId || itens.length === 0 || saving}>{saving ? "Criando…" : "Criar pedido"}</Btn></>}>
+      footer={<><Btn variant="ghost" onClick={onClose}>Cancelar</Btn><Btn icon={Save} onClick={salvar} disabled={!pacienteId || itens.length === 0 || saving}>{saving ? "Criando…" : "Criar pedido e exportar"}</Btn></>}>
       <div className="flex flex-col gap-5">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label="Paciente" required><Select value={pacienteId} onChange={(e) => setPacienteId(e.target.value)}>{patients.map((p) => <option key={p.id} value={p.id}>{p.nome}</option>)}</Select></Field>
@@ -1373,6 +1375,7 @@ function OrderDetailModal({ order: orderProp, onClose }) {
               {STATUS_PEDIDO.map((s, i) => <span key={s} className="h-1.5 w-6 rounded-full" style={{ background: i <= idx ? C.teal : C.border }} />)}
             </div>
             <div className="flex flex-wrap gap-2">
+              <Btn variant="subtle" icon={Download} onClick={() => exportPedidoXlsx({ order, paciente, unidade })}>Exportar XLSX</Btn>
               {order.status === "Aguardando Faturamento" && <Btn icon={FileCheck2} onClick={() => setShowBilling(true)}>Registrar faturamento</Btn>}
               {order.status === "Faturado" && <Btn icon={Truck} onClick={() => avancarStatus("Enviado")}>Marcar como enviado</Btn>}
               {order.status === "Enviado" && <Btn icon={PackageCheck} onClick={() => avancarStatus("Entregue e Documentado")}>Confirmar entrega</Btn>}
