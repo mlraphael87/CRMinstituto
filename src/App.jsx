@@ -658,7 +658,7 @@ function PacientesPage() {
       </div>
 
       {filtered.length === 0 ? (
-        <EmptyState icon={Users} title="Nenhum paciente encontrado" text="Ajuste a busca ou cadastre um novo paciente para iniciar o acompanhamento." action={<Btn icon={UserPlus} onClick={() => setShowNew(true)}>Novo Paciente</Btn>} />
+        <EmptyState icon={Users} title="Nenhum paciente encontrado" text="Ajuste a busca ou cadastre um novo paciente para iniciar o acompanhamento." />
       ) : (
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
           {filtered.map((p) => {
@@ -1122,7 +1122,7 @@ function PedidosPage() {
       </div>
 
       {filtered.length === 0 ? (
-        <EmptyState icon={Package} title="Nenhum pedido nesta etapa" text="Crie um novo pedido a partir do catálogo de aparelhos configurado." action={<Btn icon={Plus} onClick={() => setShowNew(true)}>Novo Pedido</Btn>} />
+        <EmptyState icon={Package} title="Nenhum pedido nesta etapa" text="Crie um novo pedido a partir do catálogo de aparelhos configurado." />
       ) : (
         <div className="flex flex-col gap-3">
           {filtered.map((o) => {
@@ -1162,24 +1162,48 @@ function ItemPicker({ label, items, onAdd }) {
   const { catalog } = useCRM();
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
-  const results = query.length > 0 ? catalog.filter((c) => (c.nome + c.codigo).toLowerCase().includes(query.toLowerCase())).slice(0, 8) : [];
+  // Sem texto digitado, o botão de lista suspensa mostra o catálogo completo;
+  // com texto, filtra por nome/código.
+  const results = query.length > 0
+    ? catalog.filter((c) => (c.nome + c.codigo).toLowerCase().includes(query.toLowerCase()))
+    : catalog;
 
   return (
     <div className="relative">
       <Field label={label}>
-        <Input value={query} onChange={(e) => { setQuery(e.target.value); setOpen(true); }} placeholder="Buscar por nome ou código do aparelho/acessório…" />
+        <div className="flex gap-2">
+          <Input
+            value={query}
+            onChange={(e) => { setQuery(e.target.value); setOpen(true); }}
+            onFocus={() => setOpen(true)}
+            placeholder="Buscar por nome ou código do aparelho/acessório…"
+          />
+          <button
+            type="button"
+            onClick={() => setOpen((o) => !o)}
+            title="Ver lista completa do catálogo"
+            className="flex shrink-0 items-center justify-center rounded-lg px-3"
+            style={{ border: `1.5px solid ${C.border}`, background: "#fff" }}
+          >
+            <ChevronDown size={16} style={{ color: C.sub }} />
+          </button>
+        </div>
       </Field>
-      {open && results.length > 0 && (
+      {open && (
         <div className="absolute z-10 mt-1 max-h-64 w-full overflow-y-auto rounded-xl shadow-lg" style={{ background: "#fff", border: `1px solid ${C.border}` }}>
-          {results.map((r) => (
-            <button key={r.id} onClick={() => { onAdd(r); setQuery(""); setOpen(false); }} className="flex w-full items-center justify-between gap-2 px-3.5 py-2.5 text-left imv-hover-tint3">
-              <div>
-                <div className="imv-t-13 font-semibold" style={{ color: C.ink }}>{r.nome}</div>
-                <div className="font-mono imv-t-11" style={{ color: C.sub }}>Cód. {r.codigo || "—"} · {r.cat}</div>
-              </div>
-              <span className="imv-t-125 font-bold" style={{ color: C.teal }}>{formatBRL(r.preco)}</span>
-            </button>
-          ))}
+          {results.length === 0 ? (
+            <p className="px-3.5 py-3 imv-t-12" style={{ color: C.sub }}>Nenhum item encontrado.</p>
+          ) : (
+            results.map((r) => (
+              <button key={r.id} onClick={() => { onAdd(r); setQuery(""); setOpen(false); }} className="flex w-full items-center justify-between gap-2 px-3.5 py-2.5 text-left imv-hover-tint3">
+                <div>
+                  <div className="imv-t-13 font-semibold" style={{ color: C.ink }}>{r.nome}</div>
+                  <div className="font-mono imv-t-11" style={{ color: C.sub }}>Cód. {r.codigo || "—"} · {r.cat}</div>
+                </div>
+                <span className="imv-t-125 font-bold" style={{ color: C.teal }}>{formatBRL(r.preco)}</span>
+              </button>
+            ))
+          )}
         </div>
       )}
     </div>
@@ -1187,9 +1211,13 @@ function ItemPicker({ label, items, onAdd }) {
 }
 
 function ItemsTable({ itens, setItens, bonificacao }) {
-  const total = itens.reduce((s, it) => s + it.quantidade * it.precoUnitario, 0);
-  const updateQty = (i, q) => setItens(itens.map((it, idx) => (idx === i ? { ...it, quantidade: Math.max(1, Number(q) || 1) } : it)));
-  const updatePrice = (i, v) => setItens(itens.map((it, idx) => (idx === i ? { ...it, precoUnitario: Number(v) || 0 } : it)));
+  const total = itens.reduce((s, it) => s + (Number(it.quantidade) || 0) * (Number(it.precoUnitario) || 0), 0);
+  // Enquanto o usuário digita, aceitamos o texto cru (mesmo vazio) para não
+  // "travar" o campo em 1 — o valor só é validado/arredondado ao sair do campo.
+  const updateQty = (i, q) => setItens(itens.map((it, idx) => (idx === i ? { ...it, quantidade: q } : it)));
+  const commitQty = (i) => setItens(itens.map((it, idx) => (idx === i ? { ...it, quantidade: Math.max(1, Math.round(Number(it.quantidade)) || 1) } : it)));
+  const updatePrice = (i, v) => setItens(itens.map((it, idx) => (idx === i ? { ...it, precoUnitario: v } : it)));
+  const commitPrice = (i) => setItens(itens.map((it, idx) => (idx === i ? { ...it, precoUnitario: Number(it.precoUnitario) || 0 } : it)));
   const remove = (i) => setItens(itens.filter((_, idx) => idx !== i));
 
   if (itens.length === 0) return <p className="rounded-lg px-3 py-3 text-center imv-t-125" style={{ background: C.cream, color: C.sub }}>Nenhum item adicionado ainda.</p>;
@@ -1207,8 +1235,8 @@ function ItemsTable({ itens, setItens, bonificacao }) {
             <tr key={i} style={{ borderTop: `1px solid ${C.border}` }}>
               <td className="px-3 py-2 font-mono" style={{ color: C.sub }}>{it.codigo || "—"}</td>
               <td className="px-3 py-2 font-semibold" style={{ color: C.ink }}>{it.nome}{bonificacao ? <Gift size={11} className="ml-1 inline" style={{ color: C.coral }} /> : null}</td>
-              <td className="px-2 py-2"><input type="number" min={1} value={it.quantidade} onChange={(e) => updateQty(i, e.target.value)} className="w-full rounded-md px-1.5 py-1 text-center" style={{ border: `1px solid ${C.border}` }} /></td>
-              <td className="px-2 py-2"><input type="number" step="0.01" value={it.precoUnitario} onChange={(e) => updatePrice(i, e.target.value)} className="w-full rounded-md px-1.5 py-1 text-right" style={{ border: `1px solid ${C.border}` }} /></td>
+              <td className="px-2 py-2"><input type="number" min={1} value={it.quantidade} onChange={(e) => updateQty(i, e.target.value)} onBlur={() => commitQty(i)} className="w-full rounded-md px-1.5 py-1 text-center" style={{ border: `1px solid ${C.border}` }} /></td>
+              <td className="px-2 py-2"><input type="number" step="0.01" value={it.precoUnitario} onChange={(e) => updatePrice(i, e.target.value)} onBlur={() => commitPrice(i)} className="w-full rounded-md px-1.5 py-1 text-right" style={{ border: `1px solid ${C.border}` }} /></td>
               <td className="px-2 py-2 text-right font-bold" style={{ color: C.ink }}>{formatBRL(it.quantidade * it.precoUnitario)}</td>
               <td className="px-2 py-2 text-center"><IconBtn icon={X} title="Remover" tone="danger" onClick={() => remove(i)} /></td>
             </tr>
@@ -1243,6 +1271,12 @@ function OrderFormModal({ onClose }) {
     setter([...list, { catalogoId: r.id, nome: r.nome, codigo: r.codigo, quantidade: 1, precoUnitario: r.preco }]);
   };
 
+  const sanitizeItens = (list) => list.map((it) => ({
+    ...it,
+    quantidade: Math.max(1, Math.round(Number(it.quantidade)) || 1),
+    precoUnitario: Number(it.precoUnitario) || 0,
+  }));
+
   const salvar = async () => {
     if (!pacienteId || itens.length === 0) return;
     setSaving(true);
@@ -1253,7 +1287,7 @@ function OrderFormModal({ onClose }) {
       numero, idFabrica: String(900000 + orders.length + 1),
       pacienteId, unidadeId, enderecoEntregaCustom: usarEnderecoCustom ? enderecoCustom : "",
       condicaoPagamento, fonoaudiologo: fonoaudiologo || paciente?.fonoaudiologo || "",
-      itens, bonificacao, status: "Aguardando Faturamento",
+      itens: sanitizeItens(itens), bonificacao: sanitizeItens(bonificacao), status: "Aguardando Faturamento",
     });
     await updatePatientFieldsFn(pacienteId, { status: "Pedido em Andamento" });
     await addPatientHistoricoFn(pacienteId, `Pedido ${numero} criado e enviado para faturamento.`);
