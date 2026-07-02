@@ -119,13 +119,27 @@ function formatBRL(n) {
 
 function pad2(n) { return String(n).padStart(2, "0"); }
 
+/* Datas "YYYY-MM-DD" vindas do banco (colunas `date`) são puros calendários,
+   sem fuso — não podem passar por `new Date(string)`, pois o JS interpreta
+   esse formato como UTC e o navegador exibe no fuso local, deslocando o dia
+   (ex.: em UTC-3/4 sempre recua 1 dia). Por isso tratamos essas strings
+   diretamente, sem criar um Date a partir delas. */
+function isDateOnlyString(v) {
+  return typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v);
+}
+
 function formatDateBR(dateLike) {
+  if (isDateOnlyString(dateLike)) {
+    const [y, m, d] = dateLike.slice(0, 10).split("-");
+    return `${d}/${m}/${y}`;
+  }
   const d = new Date(dateLike);
   if (isNaN(d)) return "—";
   return `${pad2(d.getDate())}/${pad2(d.getMonth() + 1)}/${d.getFullYear()}`;
 }
 
 function formatDateInputValue(dateLike) {
+  if (isDateOnlyString(dateLike)) return dateLike.slice(0, 10);
   const d = new Date(dateLike);
   if (isNaN(d)) return "";
   return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
@@ -138,8 +152,7 @@ function addDays(dateLike, days) {
 }
 
 function isSameDay(a, b) {
-  const da = new Date(a), db = new Date(b);
-  return da.getFullYear() === db.getFullYear() && da.getMonth() === db.getMonth() && da.getDate() === db.getDate();
+  return formatDateInputValue(a) === formatDateInputValue(b);
 }
 
 function startOfMonth(d) { const x = new Date(d); x.setDate(1); x.setHours(0, 0, 0, 0); return x; }
@@ -680,7 +693,7 @@ function PacientesPage() {
 
 function NewPatientModal({ onClose }) {
   const { createPatientFn } = useCRM();
-  const [form, setForm] = useState({ nome: "", telefone: "", dataNascimento: "", cidade: "", uf: "", endereco: "", fonoaudiologo: "", observacoes: "" });
+  const [form, setForm] = useState({ nome: "", telefone: "", cpf: "", dataNascimento: "", cidade: "", uf: "", endereco: "", fonoaudiologo: "", observacoes: "" });
   const [saving, setSaving] = useState(false);
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
 
@@ -698,9 +711,10 @@ function NewPatientModal({ onClose }) {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="sm:col-span-2"><Field label="Nome completo" required><Input value={form.nome} onChange={set("nome")} placeholder="Ex.: Maria da Silva" /></Field></div>
         <Field label="WhatsApp" required><Input value={formatPhone(form.telefone)} onChange={set("telefone")} placeholder="(65) 99999-9999" /></Field>
+        <Field label="CPF"><Input value={form.cpf} onChange={set("cpf")} placeholder="000.000.000-00" /></Field>
         <Field label="Data de nascimento"><Input type="date" value={form.dataNascimento} onChange={set("dataNascimento")} /></Field>
         <Field label="Cidade"><Input value={form.cidade} onChange={set("cidade")} placeholder="Ex.: Cuiabá" /></Field>
-        <Field label="UF"><Input value={form.uf} onChange={set("uf")} maxLength={2} placeholder="MT" /></Field>
+        <Field label="UF"><Input value={form.uf} onChange={(e) => setForm((f) => ({ ...f, uf: e.target.value.toUpperCase() }))} maxLength={2} placeholder="MT" /></Field>
         <div className="sm:col-span-2"><Field label="Endereço"><Input value={form.endereco} onChange={set("endereco")} placeholder="Rua, número, bairro, CEP" /></Field></div>
         <div className="sm:col-span-2"><Field label="Fonoaudiólogo responsável"><Input value={form.fonoaudiologo} onChange={set("fonoaudiologo")} placeholder="Ex.: Dra. Camila Rezende" /></Field></div>
         <div className="sm:col-span-2"><Field label="Observações"><Textarea rows={3} value={form.observacoes} onChange={set("observacoes")} placeholder="Queixa principal, indicação, etc." /></Field></div>
