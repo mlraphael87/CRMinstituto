@@ -1101,12 +1101,19 @@ function AppointmentModal({ appointment, defaultDate, onClose }) {
    Pedidos
    ========================================================================= */
 function PedidosPage() {
-  const { orders, patients } = useCRM();
+  const { orders, patients, deleteOrderFn } = useCRM();
   const [statusFiltro, setStatusFiltro] = useState("Todos");
   const [showNew, setShowNew] = useState(false);
   const [openOrder, setOpenOrder] = useState(null);
 
   const filtered = orders.filter((o) => statusFiltro === "Todos" || o.status === statusFiltro).sort((a, b) => new Date(b.criadoEm) - new Date(a.criadoEm));
+
+  const excluirPedido = (e, o) => {
+    e.stopPropagation();
+    if (window.confirm(`Excluir o pedido ${o.numero}? Essa ação não pode ser desfeita.`)) {
+      deleteOrderFn(o.id);
+    }
+  };
 
   return (
     <div className="flex flex-col gap-5 p-5 lg:p-8">
@@ -1130,7 +1137,15 @@ function PedidosPage() {
             const total = o.itens.reduce((s, it) => s + it.quantidade * it.precoUnitario, 0);
             const totalBoni = o.bonificacao.reduce((s, it) => s + it.quantidade * it.precoUnitario, 0);
             return (
-              <button key={o.id} onClick={() => setOpenOrder(o)} className="flex flex-wrap items-center gap-4 rounded-2xl p-4 text-left transition-shadow hover:shadow-md" style={{ background: C.card, border: `1px solid ${C.border}` }}>
+              <div
+                key={o.id}
+                role="button"
+                tabIndex={0}
+                onClick={() => setOpenOrder(o)}
+                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setOpenOrder(o); }}
+                className="flex flex-wrap items-center gap-4 rounded-2xl p-4 text-left transition-shadow hover:shadow-md cursor-pointer"
+                style={{ background: C.card, border: `1px solid ${C.border}` }}
+              >
                 <div className="flex h-11 w-11 items-center justify-center rounded-xl" style={{ background: `${STATUS_PEDIDO_COR[o.status]}18` }}>
                   <Package size={19} style={{ color: STATUS_PEDIDO_COR[o.status] }} />
                 </div>
@@ -1146,7 +1161,8 @@ function PedidosPage() {
                   <div className="imv-t-11" style={{ color: C.sub }}>{formatDateBR(o.criadoEm)}</div>
                 </div>
                 <Badge color={STATUS_PEDIDO_COR[o.status]}>{o.status}</Badge>
-              </button>
+                <IconBtn icon={Trash2} title="Excluir pedido" tone="danger" onClick={(e) => excluirPedido(e, o)} />
+              </div>
             );
           })}
         </div>
@@ -1863,6 +1879,10 @@ function CrmApp() {
     await api.setOrderBilling(id, nf, series);
     setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, status: "Faturado", nf, series } : o)));
   };
+  const deleteOrderFn = async (id) => {
+    await api.deleteOrder(id);
+    setOrders((prev) => prev.filter((o) => o.id !== id));
+  };
 
   const ctx = {
     patients, appointments, orders, catalog, units,
@@ -1870,7 +1890,7 @@ function CrmApp() {
     createAppointmentFn, updateAppointmentFn, deleteAppointmentFn,
     createCatalogItemFn, updateCatalogItemFn, deleteCatalogItemFn,
     createUnitFn, updateUnitFn, deleteUnitFn,
-    createOrderFn, updateOrderStatusFn, setOrderBillingFn,
+    createOrderFn, updateOrderStatusFn, setOrderBillingFn, deleteOrderFn,
   };
 
   const meta = PAGE_META[page];

@@ -348,6 +348,11 @@ export async function updateOrderStatus(id, status) {
   if (error) throw error;
 }
 
+export async function deleteOrder(id) {
+  const { error } = await supabase.from("pedidos").delete().eq("id", id);
+  if (error) throw error;
+}
+
 export async function setOrderBilling(id, nf, series) {
   const { error } = await supabase
     .from("pedidos")
