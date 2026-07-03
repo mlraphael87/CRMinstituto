@@ -1486,7 +1486,7 @@ function BillingModal({ order, onClose, onDone }) {
 function TermoLogo() {
   return (
     <div className="flex justify-center">
-      <img src={imouvirLogo} alt="IMOUVIR" style={{ height: 116, objectFit: "contain" }} />
+      <img src={imouvirLogo} alt="IMOUVIR" style={{ height: 128, objectFit: "contain" }} />
     </div>
   );
 }
@@ -1496,14 +1496,14 @@ function TermoConteudo({ order, paciente, unidade, cidadeAssinatura, dataHoje })
     <>
   <div className="imv-term-page rounded-xl p-6" style={{ background: "#fff", fontFamily: "Arial, Helvetica, sans-serif", color: "#111" }}>
             <TermoLogo />
-            <h2 className="mt-1.5 text-center font-extrabold" style={{ fontSize: 30.8, lineHeight: "calc(1em + 1mm)" }}>Termo de Recebimento</h2>
-            <p className="mt-0.5 text-center font-semibold text-gray-500" style={{ fontSize: 19.8, lineHeight: "calc(1em + 1mm)" }}>PROJETO SAÚDE AUDITIVA – INSTITUTO MAÇÔNICO OUVIR - IMOUVIR</p>
-            <p className="mt-1 leading-snug" style={{ fontSize: 19.8, lineHeight: "calc(1em + 1mm)" }}>
+            <h2 className="text-center font-extrabold" style={{ fontSize: 25.6, lineHeight: "calc(1em + 1mm)", marginTop: "1.5cm" }}>Termo de Recebimento</h2>
+            <p className="mt-0.5 text-center font-semibold text-gray-500" style={{ fontSize: 16.4, lineHeight: "calc(1em + 1mm)" }}>PROJETO SAÚDE AUDITIVA – INSTITUTO MAÇÔNICO OUVIR - IMOUVIR</p>
+            <p className="mt-1 leading-snug" style={{ fontSize: 16.4, lineHeight: "calc(1em + 1mm)" }}>
               Através deste termo confirmo o recebimento do(s) aparelho(s) auditivo(s) e respectiva nota fiscal descritos no quadro abaixo, bem como recebi as orientações e cuidados necessários para proteção e bom funcionamento do(s) aparelho(s).
             </p>
-            <p className="mt-1 font-bold text-center" style={{ fontSize: 19.8, lineHeight: "calc(1em + 1mm)" }}>{order.numero} - PCT {(paciente?.nome || "").toUpperCase()}</p>
+            <p className="mt-1 font-bold text-center" style={{ fontSize: 16.4, lineHeight: "calc(1em + 1mm)" }}>{order.numero} - PCT {(paciente?.nome || "").toUpperCase()}</p>
 
-            <table className="mt-1 w-full border-collapse leading-snug" style={{ fontSize: 19.2, lineHeight: "calc(1em + 1mm)" }}>
+            <table className="mt-1 w-full border-collapse leading-snug" style={{ fontSize: 15.9, lineHeight: "calc(1em + 1mm)" }}>
               <tbody>
                 <tr><td className="border border-gray-400 px-2 py-0.5 font-semibold" colSpan={1}>NF {order.nf?.numero} DE {formatDateBR(order.nf?.data)}</td><td className="border border-gray-400 px-2 py-0.5">{order.nf?.fabricante}</td></tr>
                 {order.series.length > 0 ? order.series.map((s, i) => (
@@ -1512,12 +1512,12 @@ function TermoConteudo({ order, paciente, unidade, cidadeAssinatura, dataHoje })
               </tbody>
             </table>
 
-            <p className="mt-1 font-bold uppercase leading-snug text-center" style={{ fontSize: 19.2, lineHeight: "calc(1em + 1mm)" }}>
+            <p className="mt-1 font-bold uppercase leading-snug text-center" style={{ fontSize: 15.9, lineHeight: "calc(1em + 1mm)" }}>
               Garantia do fabricante – 1 ano para defeitos de fabricação do aparelho, com exceção dos receptores, que possuem 3 meses de garantia — sujeito à análise e aprovação do laboratório da empresa.
             </p>
 
-            <h3 className="mt-1 font-extrabold" style={{ fontSize: 22.6, lineHeight: "calc(1em + 1mm)" }}>Cuidados a serem observados para preservação do Aparelho Auditivo</h3>
-            <ul className="mt-1 list-disc space-y-0 pl-5 leading-snug" style={{ fontSize: 17.6, lineHeight: "calc(1em + 1mm)" }}>
+            <h3 className="mt-1 font-extrabold" style={{ fontSize: 18.8, lineHeight: "calc(1em + 1mm)" }}>Cuidados a serem observados para preservação do Aparelho Auditivo</h3>
+            <ul className="mt-1 list-disc space-y-0 pl-5 leading-snug" style={{ fontSize: 14.6, lineHeight: "calc(1em + 1mm)" }}>
               <li>Proteja seu aparelho auditivo de sujeira. Certifique-se sempre que seus dedos estejam limpos e secos antes de tocar em seus aparelhos auditivos. A entrada do microfone é muito pequena e pode ser obstruída se for manipulada incorretamente.</li>
               <li>Evite impactos. Evite derrubar seu aparelho auditivo sobre superfícies duras. Isto pode ocorrer enquanto você limpa ou troca a pilha. Seja cuidadoso ao inserir ou remover seu aparelho auditivo.</li>
               <li>Não exponha seu aparelho auditivo a altas temperaturas. Não o exponha ao calor. Proteja-o da luz solar (em casa ou no carro) e não o deixe próximo a aquecedores.</li>
@@ -1530,7 +1530,7 @@ function TermoConteudo({ order, paciente, unidade, cidadeAssinatura, dataHoje })
               <li>Só efetue reparos com especialistas. Chaves de fenda e óleo em contato com a parte elétrica ou micro-mecânica podem causar danos irreparáveis.</li>
             </ul>
 
-            <div className="mt-0.5 text-center imv-avoid-break" style={{ fontSize: 15, lineHeight: "normal" }}>
+            <div className="mt-0.5 text-center imv-avoid-break" style={{ fontSize: 12.5, lineHeight: "normal" }}>
               <p>{cidadeAssinatura}, {formatDateBR(dataHoje)}</p>
               <p className="mt-1.5 border-t border-gray-400 mx-auto w-72">Assinatura</p>
             </div>
@@ -1538,12 +1538,12 @@ function TermoConteudo({ order, paciente, unidade, cidadeAssinatura, dataHoje })
 
           <div className="imv-page-2 imv-term-page rounded-xl p-6" style={{ background: "#fff", fontFamily: "Arial, Helvetica, sans-serif", color: "#111" }}>
             <TermoLogo />
-            <h2 className="mt-0.5 text-center font-extrabold" style={{ fontSize: 25.3, lineHeight: "calc(1em + 1mm)" }}>TERMO DE RESPONSABILIDADE E AUTORIZAÇÃO<br />DE USO E DIREITOS DE IMAGEM INDIVIDUAL</h2>
-            <p className="mt-0.5 leading-tight" style={{ fontSize: 17.6, lineHeight: "calc(1em + 1mm)" }}>
+            <h2 className="text-center font-extrabold" style={{ fontSize: 21, lineHeight: "calc(1em + 1mm)", marginTop: "1.5cm" }}>TERMO DE RESPONSABILIDADE E AUTORIZAÇÃO<br />DE USO E DIREITOS DE IMAGEM INDIVIDUAL</h2>
+            <p className="mt-0.5 leading-tight" style={{ fontSize: 14.6, lineHeight: "calc(1em + 1mm)" }}>
               Conforme assinatura abaixo, DECLARO que concordo, sem ressalvas, em participar de campanhas de divulgação do “INSTITUTO MAÇÔNICO OUVIR”, por livre e espontânea vontade, ora assumindo toda e qualquer RESPONSABILIDADE por minha participação.
             </p>
 
-            <table className="mt-0 w-full border-collapse leading-snug imv-avoid-break" style={{ fontSize: 18.2, lineHeight: "calc(1em + 1mm)" }}>
+            <table className="mt-0 w-full border-collapse leading-snug imv-avoid-break" style={{ fontSize: 15.1, lineHeight: "calc(1em + 1mm)" }}>
               <tbody>
                 <tr><td className="border border-gray-400 px-1.5 py-0 font-semibold" colSpan={2}>Nome: {paciente?.nome}</td></tr>
                 <tr><td className="border border-gray-400 px-1.5 py-0">CPF: {paciente?.cpf || "____________"}</td><td className="border border-gray-400 px-1.5 py-0"></td></tr>
@@ -1559,23 +1559,23 @@ function TermoConteudo({ order, paciente, unidade, cidadeAssinatura, dataHoje })
               </tbody>
             </table>
 
-            <p className="mt-0 leading-tight" style={{ fontSize: 16.7, lineHeight: "calc(1em + 1mm)" }}>
+            <p className="mt-0 leading-tight" style={{ fontSize: 13.8, lineHeight: "calc(1em + 1mm)" }}>
               DECLARO ter ciência de que é uma campanha de propaganda do “INSTITUTO MAÇÔNICO OUVIR”, com cunho de divulgação de seus serviços oferecidos, pela qual CONCORDO e AUTORIZO o uso de minha imagem, na divulgação da instituição, nas formas e por prazo INDETERMINADO.
             </p>
-            <p className="mt-0 leading-tight" style={{ fontSize: 16.7, lineHeight: "calc(1em + 1mm)" }}>
+            <p className="mt-0 leading-tight" style={{ fontSize: 13.8, lineHeight: "calc(1em + 1mm)" }}>
               Assim, nos termos acima e em razão da aludida participação, AUTORIZO o “INSTITUTO MAÇÔNICO OUVIR”, a utilizar minha imagem, nome, depoimento e voz, com ou sem sincronização, nos materiais de comunicação utilizado pelo “INSTITUTO MAÇÔNICO OUVIR”, para veiculação, armazenamento digital/eletrônico e divulgação na mídia em geral, escrita, falada, televisada ou eletrônica, de difusão e transmissão por qualquer meio de comunicação, dentre os quais citam, sem exclusão de qualquer outro aqui não previsto, televisão, rádio, jornal, revista, internet, rede de computador, redes sociais, e-mails, folders, flyers, home page, blog, ilustração de programa de computador, vídeo, obra multimídia, catálogos, seminários, eventos, relatório anual, press release, boletim informativo, folheto, cartão, podendo ainda usar a imagem para publicação em editorial educativo ou cultural, painel eletrônico, banner, faixas, outdoor, cartaz, display, mural, poster, encarte, mala direta, cartão postal. Material de identidade visual, materiais e meios de comunicação que o “INSTITUTO MAÇÔNICO OUVIR” deseje utilizar para divulgação ao público interno e/ou externo, com finalidade institucional e/ou publicitária.
             </p>
-            <p className="mt-0 leading-tight" style={{ fontSize: 16.7, lineHeight: "calc(1em + 1mm)" }}>
+            <p className="mt-0 leading-tight" style={{ fontSize: 13.8, lineHeight: "calc(1em + 1mm)" }}>
               Esta AUTORIZAÇÃO é concedida a título gratuito, para divulgação em todo o território nacional, por prazo indeterminado, a partir da data de aceite desta autorização, para uso nas mídias e canais de veiculação acima autorizados, sem qualquer restrição de inserções e quantidade das imagens que serão escolhidas a exclusivo critério do “INSTITUTO MAÇÔNICO OUVIR”.
             </p>
-            <p className="mt-0 leading-tight" style={{ fontSize: 16.7, lineHeight: "calc(1em + 1mm)" }}>
+            <p className="mt-0 leading-tight" style={{ fontSize: 13.8, lineHeight: "calc(1em + 1mm)" }}>
               A AUTORIZAÇÃO ora conferida abrange todos os direitos relacionados à veiculação da imagem, nome, voz, depoimento e opinião do LICENCIANTE podendo o “INSTITUTO MAÇÔNICO OUVIR”, ainda editar os materiais com os conteúdos autorizados, realizar dublagem e obras derivadas.
             </p>
-            <p className="mt-0 leading-tight" style={{ fontSize: 16.7, lineHeight: "calc(1em + 1mm)" }}>
+            <p className="mt-0 leading-tight" style={{ fontSize: 13.8, lineHeight: "calc(1em + 1mm)" }}>
               O “INSTITUTO MAÇÔNICO OUVIR”, estão isentos de qualquer responsabilidade decorrente do uso indevido das imagens captadas, especialmente em sites e comunidades virtuais, tais como You Tube, Facebook, Twitter, Instagram etc.
             </p>
 
-            <div className="mt-0 text-center imv-avoid-break" style={{ fontSize: 15, lineHeight: "normal" }}>
+            <div className="mt-0 text-center imv-avoid-break" style={{ fontSize: 12.5, lineHeight: "normal" }}>
               <p>{cidadeAssinatura}, {formatDateBR(dataHoje)}</p>
               <p className="mt-1 border-t border-gray-400 mx-auto w-72">Assinatura</p>
             </div>
@@ -1611,7 +1611,7 @@ function TermsPrintModal({ order, paciente, unidade, onClose }) {
       {createPortal(
         <div id="imv-print-portal">
           <style>{`
-            @page { size: 210mm 297mm; margin: 5mm; }
+            @page { size: 210mm 297mm; margin: 3cm 5mm 5mm 5mm; }
             #imv-print-portal { display: none; }
             @media print {
               #root { display: none !important; }
